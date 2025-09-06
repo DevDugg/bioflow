@@ -43,7 +43,7 @@ export function ArtistProfile({ artist }: { artist: Artist }) {
         variants={FADE_UP_ANIMATION_VARIANTS}
         className="flex flex-col items-center text-center"
       >
-        <Avatar className="size-28 border-4 border-background shadow-lg">
+        <Avatar className="size-28 border-2 border-background shadow-lg">
           <AvatarImage src={artist.avatarUrl} alt={artist.name} />
           <AvatarFallback>
             {artist.name
@@ -52,11 +52,13 @@ export function ArtistProfile({ artist }: { artist: Artist }) {
               .join("")}
           </AvatarFallback>
         </Avatar>
-        <h1 className="mt-4 text-4xl font-bold tracking-tight text-foreground">
+        <h1 className="mt-4 text-h1 font-extrabold tracking-tight text-foreground">
           {artist.name}
         </h1>
-        <p className="mt-1 text-lg text-muted-foreground">@{artist.handle}</p>
-        <p className="mt-6 max-w-md text-foreground/80">{artist.bio}</p>
+        <p className="mt-1 text-body text-muted-foreground">@{artist.handle}</p>
+        <p className="mt-6 max-w-md text-small text-foreground/80">
+          {artist.bio}
+        </p>
       </motion.section>
 
       <motion.section
@@ -72,11 +74,7 @@ export function ArtistProfile({ artist }: { artist: Artist }) {
       >
         {artist.links.map((link) => (
           <motion.div key={link.title} variants={FADE_UP_ANIMATION_VARIANTS}>
-            <Button
-              asChild
-              variant="outline"
-              className="h-16 w-full transform bg-background/50 text-lg shadow-sm backdrop-blur-sm transition-all duration-200 ease-in-out hover:scale-[1.03] hover:border-primary/50 hover:bg-primary/10"
-            >
+            <Button asChild variant="default" className="h-16 w-full text-base">
               <Link
                 href={link.url}
                 target="_blank"

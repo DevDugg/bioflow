@@ -1,5 +1,4 @@
 import { Music, Twitter, Instagram, Globe, Youtube, Mic2 } from "lucide-react";
-import { ThemeSwitch } from "@/components/theme-switch";
 import { ArtistProfile } from "./artist-profile";
 
 export const MOCK_ARTIST = {
@@ -50,13 +49,8 @@ export default function ArtistPage({ params }: { params: { handle: string } }) {
   const artist = MOCK_ARTIST;
 
   return (
-    <main className="relative h-fit w-full overflow-hidden bg-base-100 font-sans bg-background">
-      <div className="absolute right-4 top-4 z-20 sm:right-6 sm:top-6">
-        <ThemeSwitch />
-      </div>
-      <div className="flex h-fit flex-col items-center justify-center p-4 sm:p-8 md:p-12">
-        <ArtistProfile artist={artist} />
-      </div>
+    <main className="flex justify-center items-center flex-col gap-4 p-4 md:gap-8 md:p-8">
+      <ArtistProfile artist={artist} />
     </main>
   );
 }
