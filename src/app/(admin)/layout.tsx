@@ -1,4 +1,4 @@
-import { Sidebar } from "./sidebar";
+import { Sidebar } from "@/components/sidebar";
 import { getArtistByHandle } from "@/server/artists";
 
 export default async function AdminLayout({
@@ -6,7 +6,7 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const artist = await getArtistByHandle("melodybloom");
+  const artist = await getArtistByHandle("DevDugg");
 
   return (
     <div className="grid min-h-screen w-full lg:grid-cols-[280px_1fr]">

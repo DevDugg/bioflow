@@ -6,10 +6,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getArtistByHandle } from "@/server/artists";
-import { ProfileForm } from "./profile-form";
+import { ProfileForm } from "@/components/profile-form";
 
 export default async function ProfilePage() {
-  const artist = await getArtistByHandle("melodybloom");
+  const artist = await getArtistByHandle("DevDugg");
 
   return (
     <div className="p-4 md:p-8 space-y-8">

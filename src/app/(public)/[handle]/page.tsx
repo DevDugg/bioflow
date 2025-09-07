@@ -1,4 +1,4 @@
-import { ArtistProfile } from "./artist-profile";
+import { ArtistProfile } from "@/components/artist-profile";
 import { getArtistByHandle } from "@/server/artists";
 import { notFound } from "next/navigation";
 

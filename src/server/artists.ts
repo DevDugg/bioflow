@@ -8,6 +8,8 @@ import { NotFoundError } from "./errors/not-found-error";
 import { z } from "zod";
 import { BadRequestError } from "./errors/bad-request-error";
 import { revalidatePath } from "next/cache";
+import { createSupabaseAdminClient } from "../../supabase/admin";
+import { ModelError } from "./errors/model-error";
 
 const GetArtistByHandlePayload = z.string().min(1, "Handle is required");
 
@@ -39,25 +41,60 @@ const UpdateArtistPayload = z.object({
   name: z.string().min(1, "Name is required"),
   slug: z.string().min(1, "Slug is required"),
   description: z.string().optional(),
+  avatar: z
+    .instanceof(File)
+    .optional()
+    .refine(
+      (file) => !file || file.size < 4 * 1024 * 1024,
+      "File must be less than 4MB"
+    )
+    .refine(
+      (file) =>
+        !file || ["image/jpeg", "image/png", "image/webp"].includes(file.type),
+      "Only JPG, PNG, and WEBP formats are allowed"
+    ),
 });
 
-export const updateArtist = withErrorHandler(
-  async (payload: z.infer<typeof UpdateArtistPayload>) => {
-    const validation = UpdateArtistPayload.safeParse(payload);
-    if (!validation.success) {
-      throw new BadRequestError(validation.error.message);
-    }
-    const { id, ...data } = validation.data;
+export const updateArtist = withErrorHandler(async (payload: FormData) => {
+  const values = Object.fromEntries(payload.entries());
+  const validation = UpdateArtistPayload.safeParse(values);
 
-    const updatedArtist = await db
-      .update(artists)
-      .set(data)
-      .where(eq(artists.id, id))
-      .returning();
-
-    revalidatePath("/admin/profile");
-    revalidatePath(`/${updatedArtist[0].slug}`);
-
-    return updatedArtist[0];
+  if (!validation.success) {
+    throw new BadRequestError(validation.error.message);
   }
-);
+
+  const { id, avatar, ...data } = validation.data;
+  let newImageUrl = undefined;
+
+  if (avatar && avatar.size > 0) {
+    const supabase = createSupabaseAdminClient();
+    const filePath = `${id}/${Date.now()}-${avatar.name}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(filePath, avatar);
+
+    if (uploadError) {
+      throw new ModelError(uploadError.message);
+    }
+
+    const { data: publicUrl } = supabase.storage
+      .from("avatars")
+      .getPublicUrl(filePath);
+    newImageUrl = publicUrl.publicUrl;
+  }
+
+  const updatedArtist = await db
+    .update(artists)
+    .set({
+      ...data,
+      ...(newImageUrl && { image: newImageUrl }),
+    })
+    .where(eq(artists.id, id))
+    .returning();
+
+  revalidatePath("/admin/profile");
+  revalidatePath(`/${updatedArtist[0].slug}`);
+
+  return updatedArtist[0];
+});

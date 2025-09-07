@@ -37,7 +37,7 @@ import {
 import { useEffect, useState, useTransition } from "react";
 import { deleteLink, updateLinkOrder } from "@/server/links";
 import { toast } from "sonner";
-import { LinkForm } from "./link-form";
+import { LinkForm } from "../../components/link-form";
 import {
   DndContext,
   closestCenter,

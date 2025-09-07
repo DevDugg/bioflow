@@ -1,7 +1,7 @@
 "use client";
 
 import { getArtistByHandle } from "@/server/artists";
-import { LinksTable } from "./links-table";
+import { LinksTable } from "@/components/links-table";
 import { Button } from "@/components/ui/button";
 import { PlusIcon } from "lucide-react";
 import { useEffect, useState, useCallback } from "react";
@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { LinkForm } from "./link-form";
+import { LinkForm } from "@/components/link-form";
 import {
   Card,
   CardContent,
