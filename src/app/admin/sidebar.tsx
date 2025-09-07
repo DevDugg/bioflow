@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { getArtistByHandle } from "@/server/artists";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 
 type Artist = Awaited<ReturnType<typeof getArtistByHandle>>;
 
@@ -30,7 +31,13 @@ export function Sidebar({ artist }: { artist: Artist }) {
 
   return (
     <div className="flex h-full max-h-screen flex-col gap-4">
-      <div className="flex items-center gap-3 rounded-lg p-2 text-sm font-medium">
+      <Link
+        href="/admin/profile"
+        className={cn(
+          "flex items-center gap-3 rounded-lg p-2 text-sm font-medium transition-colors hover:bg-muted",
+          pathname === "/admin/profile" && "bg-muted"
+        )}
+      >
         <Avatar className="h-9 w-9 border">
           <AvatarImage src={artist.image ?? undefined} alt={artist.name} />
           <AvatarFallback>
@@ -44,7 +51,7 @@ export function Sidebar({ artist }: { artist: Artist }) {
           <span className="font-semibold tracking-tight">{artist.name}</span>
           <span className="text-xs text-muted-foreground">@{artist.slug}</span>
         </div>
-      </div>
+      </Link>
       <div className="flex-1">
         <nav className="flex flex-col gap-1">
           {navItems.map((item) => (

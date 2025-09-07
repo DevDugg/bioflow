@@ -7,6 +7,7 @@ import { withErrorHandler } from "./errors/error-handler";
 import { NotFoundError } from "./errors/not-found-error";
 import { z } from "zod";
 import { BadRequestError } from "./errors/bad-request-error";
+import { revalidatePath } from "next/cache";
 
 const GetArtistByHandlePayload = z.string().min(1, "Handle is required");
 
@@ -32,3 +33,31 @@ export const getArtistByHandle = withErrorHandler(async (handle: string) => {
 
   return artist;
 });
+
+const UpdateArtistPayload = z.object({
+  id: z.uuid(),
+  name: z.string().min(1, "Name is required"),
+  slug: z.string().min(1, "Slug is required"),
+  description: z.string().optional(),
+});
+
+export const updateArtist = withErrorHandler(
+  async (payload: z.infer<typeof UpdateArtistPayload>) => {
+    const validation = UpdateArtistPayload.safeParse(payload);
+    if (!validation.success) {
+      throw new BadRequestError(validation.error.message);
+    }
+    const { id, ...data } = validation.data;
+
+    const updatedArtist = await db
+      .update(artists)
+      .set(data)
+      .where(eq(artists.id, id))
+      .returning();
+
+    revalidatePath("/admin/profile");
+    revalidatePath(`/${updatedArtist[0].slug}`);
+
+    return updatedArtist[0];
+  }
+);
