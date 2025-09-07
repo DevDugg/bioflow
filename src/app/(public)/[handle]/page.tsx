@@ -7,11 +7,12 @@ export default async function ArtistPage({
 }: {
   params: { handle: string };
 }) {
-  const result = await getArtistByHandle(params.handle);
+  const { handle } = await params;
+  const result = await getArtistByHandle(handle);
 
   if ("errors" in result) {
     // This can be replaced with a custom error component
-    if (result.errors.some((e) => e.message === "Artist not found")) {
+    if (result.errors.some((e: any) => e?.message === "Artist not found")) {
       notFound();
     }
     return (
@@ -19,7 +20,7 @@ export default async function ArtistPage({
         <div className="text-center">
           <h1 className="text-2xl font-bold">Something went wrong</h1>
           <p className="text-muted-foreground">
-            {result.errors.map((e) => e.message).join(", ")}
+            {result.errors.map((e: any) => e?.message).join(", ")}
           </p>
         </div>
       </main>
