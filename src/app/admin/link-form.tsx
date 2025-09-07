@@ -15,12 +15,12 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useTransition } from "react";
-import { createLink } from "@/server/links";
+import { createLink, updateLink } from "@/server/links";
 import { toast } from "sonner";
 
 const formSchema = z.object({
   label: z.string().min(2, "Label must be at least 2 characters."),
-  url: z.string().url("Please enter a valid URL."),
+  url: z.url("Please enter a valid URL."),
   icon: z.string().optional(),
   badge: z.string().optional(),
 });
@@ -30,33 +30,47 @@ type LinkFormValues = z.infer<typeof formSchema>;
 interface LinkFormProps {
   artistId: string;
   onSuccess?: () => void;
+  initialData?: LinkFormValues & { id: string };
 }
 
-export function LinkForm({ artistId, onSuccess }: LinkFormProps) {
+export function LinkForm({ artistId, onSuccess, initialData }: LinkFormProps) {
   const [isPending, startTransition] = useTransition();
+  const isEditMode = !!initialData;
 
   const form = useForm<LinkFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      label: "",
-      url: "",
-      icon: "",
-      badge: "",
+      label: initialData?.label ?? "",
+      url: initialData?.url ?? "",
+      icon: initialData?.icon ?? "",
+      badge: initialData?.badge ?? "",
     },
   });
 
   function onSubmit(values: LinkFormValues) {
     startTransition(async () => {
-      const result = await createLink({ artistId, ...values });
-      if ("errors" in result) {
-        toast.error("Error creating link", {
-          description: result.errors.map((e: any) => e.message).join(", "),
-        });
+      if (isEditMode) {
+        const result = await updateLink({ id: initialData.id, ...values });
+        if ("errors" in result) {
+          toast.error("Error updating link", {
+            description: result.errors.map((e: any) => e.message).join(", "),
+          });
+        } else {
+          toast.success("Link updated successfully.");
+          onSuccess?.();
+        }
       } else {
-        toast.success("Link created", {
-          description: "Your new link has been saved.",
-        });
-        onSuccess?.();
+        const result = await createLink({ artistId, ...values });
+        if ("errors" in result) {
+          toast.error("Error creating link", {
+            description: result.errors.map((e: any) => e.message).join(", "),
+          });
+        } else {
+          toast.success("Link created", {
+            description: "Your new link has been saved.",
+          });
+          onSuccess?.();
+        }
       }
     });
   }
@@ -136,7 +150,13 @@ export function LinkForm({ artistId, onSuccess }: LinkFormProps) {
           )}
         />
         <Button type="submit" disabled={isPending}>
-          {isPending ? "Saving..." : "Save Link"}
+          {isPending
+            ? isEditMode
+              ? "Saving..."
+              : "Creating..."
+            : isEditMode
+            ? "Save Changes"
+            : "Create Link"}
         </Button>
       </form>
     </Form>

@@ -42,7 +42,7 @@ export default function AdminPage() {
     fetchData();
   }, [fetchData]);
 
-  const handleLinkCreated = () => {
+  const handleSuccess = () => {
     setCreateDialogOpen(false);
     fetchData();
   };
@@ -85,12 +85,12 @@ export default function AdminPage() {
               <DialogHeader>
                 <DialogTitle>Create a new link</DialogTitle>
               </DialogHeader>
-              <LinkForm artistId={artist.id} onSuccess={handleLinkCreated} />
+              <LinkForm artistId={artist.id} onSuccess={handleSuccess} />
             </DialogContent>
           </Dialog>
         </CardHeader>
         <CardContent>
-          <LinksTable artist={artist} />
+          <LinksTable artist={artist} onLinkUpdated={handleSuccess} />
         </CardContent>
       </Card>
     </div>
