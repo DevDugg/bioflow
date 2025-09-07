@@ -4,18 +4,32 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import {
+  type LucideIcon,
+  Globe,
+  Twitter,
+  Instagram,
+  Youtube,
+  Mic2,
+  Music,
+  Link as LinkIcon,
+} from "lucide-react";
+import type { getArtistByHandle } from "@/server/artists";
 
-// This is a simplified type for the mock data, no need to import the full object
-type Artist = {
-  name: string;
-  handle: string;
-  avatarUrl: string;
-  bio: string;
-  links: {
-    title: string;
-    url: string;
-    icon: React.ReactNode;
-  }[];
+type Artist = Awaited<ReturnType<typeof getArtistByHandle>>;
+
+type Link = Artist extends { links: Array<any> }
+  ? Artist["links"][number]
+  : never;
+
+const iconMap: Record<string, LucideIcon> = {
+  globe: Globe,
+  twitter: Twitter,
+  instagram: Instagram,
+  youtube: Youtube,
+  mic2: Mic2,
+  music: Music,
+  link: LinkIcon,
 };
 
 const FADE_UP_ANIMATION_VARIANTS = {
@@ -44,21 +58,23 @@ export function ArtistProfile({ artist }: { artist: Artist }) {
         className="flex flex-col items-center text-center"
       >
         <Avatar className="size-28 border-2 border-background shadow-lg">
-          <AvatarImage src={artist.avatarUrl} alt={artist.name} />
+          <AvatarImage src={artist.image ?? undefined} alt={artist.name} />
           <AvatarFallback>
             {artist.name
               .split(" ")
-              .map((n) => n[0])
+              .map((n: string) => n[0])
               .join("")}
           </AvatarFallback>
         </Avatar>
         <h1 className="mt-4 text-h1 font-extrabold tracking-tight text-foreground">
           {artist.name}
         </h1>
-        <p className="mt-1 text-body text-muted-foreground">@{artist.handle}</p>
-        <p className="mt-6 max-w-md text-small text-foreground/80">
-          {artist.bio}
-        </p>
+        <p className="mt-1 text-body text-muted-foreground">@{artist.slug}</p>
+        {artist.description && (
+          <p className="mt-6 max-w-md text-small text-foreground/80">
+            {artist.description}
+          </p>
+        )}
       </motion.section>
 
       <motion.section
@@ -72,21 +88,28 @@ export function ArtistProfile({ artist }: { artist: Artist }) {
         }}
         className="mt-10 flex w-full flex-col space-y-4"
       >
-        {artist.links.map((link) => (
-          <motion.div key={link.title} variants={FADE_UP_ANIMATION_VARIANTS}>
-            <Button asChild variant="default" className="h-16 w-full text-base">
-              <Link
-                href={link.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center"
+        {artist.links.map((link: Link) => {
+          const Icon = link.icon ? iconMap[link.icon] ?? LinkIcon : LinkIcon;
+          return (
+            <motion.div key={link.id} variants={FADE_UP_ANIMATION_VARIANTS}>
+              <Button
+                asChild
+                variant="default"
+                className="h-16 w-full text-base"
               >
-                {link.icon}
-                {link.title}
-              </Link>
-            </Button>
-          </motion.div>
-        ))}
+                <Link
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-center"
+                >
+                  <Icon className="mr-2 h-4 w-4" />
+                  {link.label}
+                </Link>
+              </Button>
+            </motion.div>
+          );
+        })}
       </motion.section>
     </motion.div>
   );

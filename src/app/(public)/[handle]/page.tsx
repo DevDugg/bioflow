@@ -1,56 +1,34 @@
-import { Music, Twitter, Instagram, Globe, Youtube, Mic2 } from "lucide-react";
 import { ArtistProfile } from "./artist-profile";
+import { getArtistByHandle } from "@/server/artists";
+import { notFound } from "next/navigation";
 
-export const MOCK_ARTIST = {
-  name: "Melody Bloom",
-  handle: "melodybloom",
-  avatarUrl: "https://i.pravatar.cc/150?u=melodybloom",
-  bio: "Indie artist crafting dreamy soundscapes. Listen to my latest single 'Ocean Eyes' now!",
-  links: [
-    {
-      title: "Listen on Spotify",
-      url: "#",
-      icon: <Music className="mr-2 h-4 w-4" />,
-    },
-    {
-      title: "Listen on Apple Music",
-      url: "#",
-      icon: <Music className="mr-2 h-4 w-4" />,
-    },
-    {
-      title: "Official Website",
-      url: "#",
-      icon: <Globe className="mr-2 h-4 w-4" />,
-    },
-    {
-      title: "Follow on Twitter",
-      url: "#",
-      icon: <Twitter className="mr-2 h-4 w-4" />,
-    },
-    {
-      title: "Follow on Instagram",
-      url: "#",
-      icon: <Instagram className="mr-2 h-4 w-4" />,
-    },
-    {
-      title: "Watch on YouTube",
-      url: "#",
-      icon: <Youtube className="mr-2 h-4 w-4" />,
-    },
-    {
-      title: "Upcoming Tour Dates",
-      url: "#",
-      icon: <Mic2 className="mr-2 h-4 w-4" />,
-    },
-  ],
-};
+export default async function ArtistPage({
+  params,
+}: {
+  params: { handle: string };
+}) {
+  const result = await getArtistByHandle(params.handle);
 
-export default function ArtistPage({ params }: { params: { handle: string } }) {
-  const artist = MOCK_ARTIST;
+  if ("errors" in result) {
+    // This can be replaced with a custom error component
+    if (result.errors.some((e) => e.message === "Artist not found")) {
+      notFound();
+    }
+    return (
+      <main className="flex justify-center items-center h-screen">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold">Something went wrong</h1>
+          <p className="text-muted-foreground">
+            {result.errors.map((e) => e.message).join(", ")}
+          </p>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="flex justify-center items-center flex-col gap-4 p-4 md:gap-8 md:p-8">
-      <ArtistProfile artist={artist} />
+      <ArtistProfile artist={result} />
     </main>
   );
 }
