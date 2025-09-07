@@ -15,10 +15,10 @@ import {
   Link as LinkIcon,
 } from "lucide-react";
 import type { getArtistByHandle } from "@/server/artists";
+import { Badge } from "@/components/ui/badge";
 
 type Artist = Awaited<ReturnType<typeof getArtistByHandle>>;
-
-type Link = Artist extends { links: Array<any> }
+type LinkType = Artist extends { links: Array<any> }
   ? Artist["links"][number]
   : never;
 
@@ -38,6 +38,10 @@ const FADE_UP_ANIMATION_VARIANTS = {
 };
 
 export function ArtistProfile({ artist }: { artist: Artist }) {
+  if (!artist || "errors" in artist) {
+    return null;
+  }
+
   return (
     <motion.div
       className="w-full max-w-lg"
@@ -88,7 +92,7 @@ export function ArtistProfile({ artist }: { artist: Artist }) {
         }}
         className="mt-10 flex w-full flex-col space-y-4"
       >
-        {artist.links.map((link: Link) => {
+        {artist.links.map((link: LinkType) => {
           const Icon = link.icon ? iconMap[link.icon] ?? LinkIcon : LinkIcon;
           return (
             <motion.div key={link.id} variants={FADE_UP_ANIMATION_VARIANTS}>
@@ -104,7 +108,12 @@ export function ArtistProfile({ artist }: { artist: Artist }) {
                   className="flex items-center justify-center"
                 >
                   <Icon className="mr-2 h-4 w-4" />
-                  {link.label}
+                  <span className="truncate">{link.label}</span>
+                  {link.badge && (
+                    <Badge className="ml-2" variant="secondary">
+                      {link.badge}
+                    </Badge>
+                  )}
                 </Link>
               </Button>
             </motion.div>
