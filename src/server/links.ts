@@ -5,20 +5,26 @@ import { links } from "@/db/schemas";
 import { withErrorHandler } from "@/server/errors/error-handler";
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
+import { z } from "zod";
+import { BadRequestError } from "./errors/bad-request-error";
 
-interface CreateLinkPayload {
-  artistId: string;
-  label: string;
-  url: string;
-  icon?: string;
-  badge?: string;
-}
+const CreateLinkPayload = z.object({
+  artistId: z.uuid(),
+  label: z.string().min(1, "Label is required"),
+  url: z.url("Invalid URL format"),
+  icon: z.string().optional(),
+  badge: z.string().optional(),
+});
 
 export const createLink = withErrorHandler(
-  async (payload: CreateLinkPayload) => {
-    // TODO: Add validation
+  async (payload: z.infer<typeof CreateLinkPayload>) => {
+    const validation = CreateLinkPayload.safeParse(payload);
+    if (!validation.success) {
+      throw new BadRequestError(validation.error.message);
+    }
+
     // TODO: Recalculate order
-    const newLink = await db.insert(links).values(payload).returning();
+    const newLink = await db.insert(links).values(validation.data).returning();
 
     revalidatePath("/admin");
     revalidatePath(`/${(await getArtistFromLink(newLink[0].id))?.slug}`);
@@ -27,42 +33,57 @@ export const createLink = withErrorHandler(
   }
 );
 
-interface UpdateLinkPayload {
-  id: string;
-  label: string;
-  url: string;
-  icon?: string;
-  badge?: string;
-}
+const UpdateLinkPayload = z.object({
+  id: z.uuid(),
+  label: z.string().min(1, "Label is required"),
+  url: z.url("Invalid URL format"),
+  icon: z.string().optional(),
+  badge: z.string().optional(),
+});
 
 export const updateLink = withErrorHandler(
-  async (payload: UpdateLinkPayload) => {
-    // TODO: Add validation
+  async (payload: z.infer<typeof UpdateLinkPayload>) => {
+    const validation = UpdateLinkPayload.safeParse(payload);
+    if (!validation.success) {
+      throw new BadRequestError(validation.error.message);
+    }
+    const { id, ...data } = validation.data;
+
     const updatedLink = await db
       .update(links)
-      .set({
-        label: payload.label,
-        url: payload.url,
-        icon: payload.icon,
-        badge: payload.badge,
-      })
-      .where(eq(links.id, payload.id))
+      .set(data)
+      .where(eq(links.id, id))
       .returning();
 
     revalidatePath("/admin");
-    revalidatePath(`/${(await getArtistFromLink(payload.id))?.slug}`);
+    revalidatePath(`/${(await getArtistFromLink(id))?.slug}`);
 
     return updatedLink[0];
   }
 );
 
+const UpdateLinkOrderPayload = z.array(
+  z.object({
+    id: z.uuid(),
+    order: z.number().int(),
+  })
+);
+
 export const updateLinkOrder = withErrorHandler(
-  async (linksToUpdate: { id: string; order: number }[]) => {
-    const artist = await getArtistFromLink(linksToUpdate[0].id);
+  async (linksToUpdate: z.infer<typeof UpdateLinkOrderPayload>) => {
+    const validation = UpdateLinkOrderPayload.safeParse(linksToUpdate);
+    if (!validation.success) {
+      throw new BadRequestError(validation.error.message);
+    }
+    if (validation.data.length === 0) {
+      return { success: true }; // Nothing to update
+    }
+
+    const artist = await getArtistFromLink(validation.data[0].id);
 
     // Using a transaction to ensure all updates succeed or fail together
     await db.transaction(async (tx) => {
-      for (const link of linksToUpdate) {
+      for (const link of validation.data) {
         await tx
           .update(links)
           .set({ order: link.order })
