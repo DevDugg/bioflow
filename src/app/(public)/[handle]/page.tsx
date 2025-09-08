@@ -1,6 +1,5 @@
 import { getArtistByHandle } from "@/server/artists";
 import { notFound } from "next/navigation";
-import { ThemeInjector } from "@/components/theme-injector";
 import { ArtistProfile } from "@/components/artist-profile";
 
 export default async function ArtistPage({
@@ -29,7 +28,6 @@ export default async function ArtistPage({
 
   return (
     <>
-      <ThemeInjector />
       <main className="flex justify-center items-center flex-col gap-4 p-4 md:gap-8 md:p-8">
         <ArtistProfile artist={result} />
       </main>

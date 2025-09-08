@@ -17,20 +17,21 @@ import { memo, useEffect, useTransition } from "react";
 import { toast } from "sonner";
 import type { getArtistByHandle } from "@/server/artists";
 import { updateArtistTheme } from "@/server/artists";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { HexColorPicker } from "react-colorful";
+import { XIcon } from "lucide-react";
 
 type Artist = Awaited<ReturnType<typeof getArtistByHandle>>;
 
 const formSchema = z.object({
   background: z.string(),
   foreground: z.string(),
-  card: z.string(),
-  cardForeground: z.string(),
   primary: z.string(),
   primaryForeground: z.string(),
-  secondary: z.string(),
-  secondaryForeground: z.string(),
-  accent: z.string(),
-  accentForeground: z.string(),
 });
 
 type ThemeFormValues = z.infer<typeof formSchema>;
@@ -39,6 +40,13 @@ interface ThemeFormProps {
   artist: Artist;
   onThemeChange: (theme: ThemeFormValues) => void;
 }
+
+const themeColors: (keyof ThemeFormValues)[] = [
+  "background",
+  "foreground",
+  "primary",
+  "primaryForeground",
+];
 
 export const ThemeForm = memo(function ThemeForm({
   artist,
@@ -55,14 +63,8 @@ export const ThemeForm = memo(function ThemeForm({
     defaultValues: {
       background: artist.theme?.background ?? "",
       foreground: artist.theme?.foreground ?? "",
-      card: artist.theme?.card ?? "",
-      cardForeground: artist.theme?.cardForeground ?? "",
       primary: artist.theme?.primary ?? "",
       primaryForeground: artist.theme?.primaryForeground ?? "",
-      secondary: artist.theme?.secondary ?? "",
-      secondaryForeground: artist.theme?.secondaryForeground ?? "",
-      accent: artist.theme?.accent ?? "",
-      accentForeground: artist.theme?.accentForeground ?? "",
     },
   });
 
@@ -84,31 +86,60 @@ export const ThemeForm = memo(function ThemeForm({
     });
   }
 
+  const handleReset = () => {
+    form.reset({
+      background: "",
+      foreground: "",
+      primary: "",
+      primaryForeground: "",
+    });
+    toast.info("Theme reset to default.");
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          {Object.keys(form.getValues()).map((key) => (
+          {themeColors.map((key) => (
             <FormField
               key={key}
               control={form.control}
-              name={key as keyof ThemeFormValues}
+              name={key}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="capitalize">
                     {key.replace(/([A-Z])/g, " $1")}
                   </FormLabel>
                   <div className="flex items-center gap-2">
-                    <div
-                      className="h-10 w-10 rounded-md border"
-                      style={{
-                        backgroundColor: form.watch(
-                          key as keyof ThemeFormValues
-                        ),
-                      }}
-                    />
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="h-10 w-10 p-0"
+                          style={{ backgroundColor: field.value }}
+                        />
+                      </PopoverTrigger>
+                      <PopoverContent>
+                        <HexColorPicker
+                          color={field.value || ""}
+                          onChange={(color) => field.onChange(color)}
+                        />
+                      </PopoverContent>
+                    </Popover>
                     <FormControl>
-                      <Input placeholder="oklch(...)" {...field} />
+                      <div className="relative w-full">
+                        <Input placeholder="" {...field} />
+                        {field.value && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="absolute right-1 top-1/2 -translate-y-1/2 h-6 w-6"
+                            onClick={() => form.setValue(key, "")}
+                          >
+                            <XIcon className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
                     </FormControl>
                   </div>
                   <FormMessage />
@@ -117,9 +148,19 @@ export const ThemeForm = memo(function ThemeForm({
             />
           ))}
         </div>
-        <Button type="submit" disabled={isPending}>
-          {isPending ? "Saving..." : "Save Theme"}
-        </Button>
+        <div className="flex gap-2">
+          <Button type="submit" disabled={isPending}>
+            {isPending ? "Saving..." : "Save Theme"}
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={handleReset}
+            disabled={isPending}
+          >
+            Reset to Default
+          </Button>
+        </div>
       </form>
     </Form>
   );

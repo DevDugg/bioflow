@@ -42,9 +42,17 @@ export function ArtistProfile({ artist }: { artist: Artist }) {
     return null;
   }
 
+  const themeStyle = {
+    "--background": artist.theme?.background,
+    "--foreground": artist.theme?.foreground,
+    "--primary": artist.theme?.primary,
+    "--primary-foreground": artist.theme?.primaryForeground,
+  } as React.CSSProperties;
+
   return (
     <motion.div
       className="w-full max-w-lg"
+      style={themeStyle}
       initial="hidden"
       animate="show"
       viewport={{ once: true }}

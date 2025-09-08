@@ -10,7 +10,7 @@ import {
 import type { getArtistByHandle } from "@/server/artists";
 import { ProfileForm } from "@/components/profile-form";
 import { ThemeForm } from "@/components/theme-form";
-import { LivePreview } from "@/components/live-preview";
+import { ArtistProfile } from "@/components/artist-profile";
 import { useState } from "react";
 
 interface ProfileViewProps {
@@ -31,6 +31,11 @@ export function ProfileView({ artist }: ProfileViewProps) {
       </div>
     );
   }
+
+  const liveArtist = {
+    ...artist,
+    theme,
+  };
 
   return (
     <div className="grid h-full grid-cols-1 gap-8 p-4 md:grid-cols-2 md:p-8">
@@ -61,7 +66,9 @@ export function ProfileView({ artist }: ProfileViewProps) {
       </div>
       <div className="hidden md:block">
         <div className="sticky top-8">
-          <LivePreview artistSlug={artist.slug} theme={theme} />
+          <div className="rounded-lg border bg-background p-4 flex justify-center">
+            <ArtistProfile artist={liveArtist} />
+          </div>
         </div>
       </div>
     </div>
