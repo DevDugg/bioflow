@@ -8,6 +8,7 @@ export default defineConfig({
   out: "./supabase/migrations",
   dialect: "postgresql",
   dbCredentials: {
+    // use DATABASE_SESSION_POOLER_URL when pushing migrations
     url: process.env.DATABASE_URL!,
   },
 });

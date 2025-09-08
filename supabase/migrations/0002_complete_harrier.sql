@@ -1,0 +1,12 @@
+ALTER TABLE "clicks" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE "artists" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+ALTER TABLE "links" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+CREATE POLICY "Allow owners to read analytics for their artist" ON "clicks" AS PERMISSIVE FOR SELECT TO "authenticated" USING (exists (select 1 from links join artists on links.artist_id = artists.id where links.id = "clicks"."link_id" and artists.owner_id = (select auth.uid())));--> statement-breakpoint
+CREATE POLICY "Allow public read access to artists" ON "artists" AS PERMISSIVE FOR SELECT TO public USING (true);--> statement-breakpoint
+CREATE POLICY "Allow authenticated users to insert their own artist" ON "artists" AS PERMISSIVE FOR INSERT TO "authenticated" WITH CHECK ((select auth.uid()) = owner_id);--> statement-breakpoint
+CREATE POLICY "Allow owners to update their own artist" ON "artists" AS PERMISSIVE FOR UPDATE TO "authenticated" USING ((select auth.uid()) = owner_id) WITH CHECK ((select auth.uid()) = owner_id);--> statement-breakpoint
+CREATE POLICY "Allow owners to delete their own artist" ON "artists" AS PERMISSIVE FOR DELETE TO "authenticated" USING ((select auth.uid()) = owner_id);--> statement-breakpoint
+CREATE POLICY "Allow public read access to links" ON "links" AS PERMISSIVE FOR SELECT TO public USING (true);--> statement-breakpoint
+CREATE POLICY "Allow authenticated users to insert links for their artist" ON "links" AS PERMISSIVE FOR INSERT TO "authenticated" WITH CHECK (exists (select 1 from artists where artists.id = "links"."artist_id" and artists.owner_id = (select auth.uid())));--> statement-breakpoint
+CREATE POLICY "Allow owners to update their links" ON "links" AS PERMISSIVE FOR UPDATE TO "authenticated" USING (exists (select 1 from artists where artists.id = "links"."artist_id" and artists.owner_id = (select auth.uid()))) WITH CHECK (exists (select 1 from artists where artists.id = "links"."artist_id" and artists.owner_id = (select auth.uid())));--> statement-breakpoint
+CREATE POLICY "Allow owners to delete their links" ON "links" AS PERMISSIVE FOR DELETE TO "authenticated" USING (exists (select 1 from artists where artists.id = "links"."artist_id" and artists.owner_id = (select auth.uid())));
