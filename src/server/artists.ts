@@ -98,3 +98,40 @@ export const updateArtist = withErrorHandler(async (payload: FormData) => {
 
   return updatedArtist[0];
 });
+
+const UpdateArtistThemePayload = z.object({
+  id: z.uuid(),
+  theme: z.object({
+    background: z.string().optional(),
+    foreground: z.string().optional(),
+    card: z.string().optional(),
+    cardForeground: z.string().optional(),
+    primary: z.string().optional(),
+    primaryForeground: z.string().optional(),
+    secondary: z.string().optional(),
+    secondaryForeground: z.string().optional(),
+    accent: z.string().optional(),
+    accentForeground: z.string().optional(),
+  }),
+});
+
+export const updateArtistTheme = withErrorHandler(
+  async (payload: z.infer<typeof UpdateArtistThemePayload>) => {
+    const validation = UpdateArtistThemePayload.safeParse(payload);
+    if (!validation.success) {
+      throw new BadRequestError(validation.error.message);
+    }
+    const { id, theme } = validation.data;
+
+    const updatedArtist = await db
+      .update(artists)
+      .set({ theme })
+      .where(eq(artists.id, id))
+      .returning();
+
+    revalidatePath("/admin/profile");
+    revalidatePath(`/${updatedArtist[0].slug}`);
+
+    return updatedArtist[0];
+  }
+);

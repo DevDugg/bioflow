@@ -24,9 +24,16 @@ export const artists = pgTable(
     slug: text("slug").notNull(),
     status: text("status").notNull().default("published"),
     theme: jsonb("theme").$type<{
+      background?: string;
+      foreground?: string;
+      card?: string;
+      cardForeground?: string;
       primary?: string;
+      primaryForeground?: string;
       secondary?: string;
-      dark?: boolean;
+      secondaryForeground?: string;
+      accent?: string;
+      accentForeground?: string;
     }>(),
     ...timestamps,
   },
