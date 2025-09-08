@@ -13,7 +13,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { memo, useEffect, useTransition } from "react";
+import { memo, useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 import type { getArtistByHandle } from "@/server/artists";
 import { updateArtistTheme } from "@/server/artists";
@@ -48,11 +48,30 @@ const themeColors: (keyof ThemeFormValues)[] = [
   "primaryForeground",
 ];
 
+const cssVarMap: Record<keyof ThemeFormValues, string> = {
+  background: "--background",
+  foreground: "--foreground",
+  primary: "--primary",
+  primaryForeground: "--primary-foreground",
+};
+
 export const ThemeForm = memo(function ThemeForm({
   artist,
   onThemeChange,
 }: ThemeFormProps) {
   const [isPending, startTransition] = useTransition();
+  const [defaultTheme, setDefaultTheme] = useState<ThemeFormValues | null>(
+    null
+  );
+
+  useEffect(() => {
+    const style = getComputedStyle(document.documentElement);
+    const theme = themeColors.reduce((acc, key) => {
+      acc[key] = style.getPropertyValue(cssVarMap[key]).trim();
+      return acc;
+    }, {} as ThemeFormValues);
+    setDefaultTheme(theme);
+  }, []);
 
   if ("errors" in artist) {
     return null;
@@ -61,12 +80,24 @@ export const ThemeForm = memo(function ThemeForm({
   const form = useForm<ThemeFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      background: artist.theme?.background ?? "",
-      foreground: artist.theme?.foreground ?? "",
-      primary: artist.theme?.primary ?? "",
-      primaryForeground: artist.theme?.primaryForeground ?? "",
+      background: "",
+      foreground: "",
+      primary: "",
+      primaryForeground: "",
     },
   });
+
+  useEffect(() => {
+    if (defaultTheme) {
+      form.reset({
+        background: artist.theme?.background || defaultTheme.background,
+        foreground: artist.theme?.foreground || defaultTheme.foreground,
+        primary: artist.theme?.primary || defaultTheme.primary,
+        primaryForeground:
+          artist.theme?.primaryForeground || defaultTheme.primaryForeground,
+      });
+    }
+  }, [defaultTheme, artist.theme, form]);
 
   const watchedTheme = form.watch();
   useEffect(() => {
@@ -87,14 +118,27 @@ export const ThemeForm = memo(function ThemeForm({
   }
 
   const handleReset = () => {
-    form.reset({
-      background: "",
-      foreground: "",
-      primary: "",
-      primaryForeground: "",
-    });
-    toast.info("Theme reset to default.");
+    if (defaultTheme) {
+      form.reset(defaultTheme);
+      startTransition(async () => {
+        const result = await updateArtistTheme({
+          id: artist.id,
+          theme: defaultTheme,
+        });
+        if ("errors" in result) {
+          toast.error("Error resetting theme", {
+            description: result.errors.map((e: any) => e.message).join(", "),
+          });
+        } else {
+          toast.info("Theme reset to default.");
+        }
+      });
+    }
   };
+
+  if (!defaultTheme) {
+    return null; // or a loading skeleton
+  }
 
   return (
     <Form {...form}>
@@ -122,13 +166,13 @@ export const ThemeForm = memo(function ThemeForm({
                       <PopoverContent>
                         <HexColorPicker
                           color={field.value || ""}
-                          onChange={(color) => field.onChange(color)}
+                          onChange={field.onChange}
                         />
                       </PopoverContent>
                     </Popover>
                     <FormControl>
                       <div className="relative w-full">
-                        <Input placeholder="" {...field} />
+                        <Input placeholder={defaultTheme[key]} {...field} />
                         {field.value && (
                           <Button
                             variant="ghost"
