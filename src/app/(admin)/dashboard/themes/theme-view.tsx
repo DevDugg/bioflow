@@ -53,7 +53,12 @@ export function ThemeView({ artist }: ThemeViewProps) {
       </div>
       <div className="hidden md:block">
         <div className="sticky top-8">
-          <div className="rounded-lg border bg-background p-4 flex justify-center">
+          <div
+            className="rounded-lg border p-4 flex justify-center"
+            style={{
+              backgroundColor: theme?.background ?? "var(--background)",
+            }}
+          >
             <ArtistProfile artist={liveArtist} />
           </div>
         </div>

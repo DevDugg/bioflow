@@ -28,6 +28,11 @@ export default async function ArtistPage({
 
   return (
     <>
+      <style>{`
+        body {
+          background-color: ${result.theme?.background ?? "var(--background)"};
+        }
+      `}</style>
       <main className="flex justify-center items-center flex-col gap-4 p-4 md:gap-8 md:p-8">
         <ArtistProfile artist={result} />
       </main>
