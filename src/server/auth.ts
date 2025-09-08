@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 import { withErrorHandler } from "@/server/errors/error-handler";
 
 export const login = withErrorHandler(
-  async (formData: FormData): Promise<void> => {
+  async (prevState: any, formData: FormData): Promise<void> => {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
     const supabase = await createClient();
@@ -18,7 +18,7 @@ export const login = withErrorHandler(
     });
 
     if (error) {
-      throw new ModelError("Could not authenticate user");
+      throw new ModelError(error.message);
     }
 
     return redirect("/dashboard");
@@ -37,7 +37,7 @@ export const loginWithGoogle = withErrorHandler(async (): Promise<void> => {
   });
 
   if (error) {
-    throw new ModelError("Could not authenticate user");
+    throw new ModelError(error.message);
   }
 
   return redirect(data.url);
