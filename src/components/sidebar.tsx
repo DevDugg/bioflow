@@ -15,7 +15,7 @@ export function Sidebar({ artist }: { artist: Artist }) {
 
   const navItems = [
     {
-      href: "/admin",
+      href: "/dashboard/links",
       label: "Links",
       icon: LinkIcon,
     },
@@ -32,10 +32,10 @@ export function Sidebar({ artist }: { artist: Artist }) {
   return (
     <div className="flex h-full max-h-screen flex-col gap-4">
       <Link
-        href="/admin/profile"
+        href="/dashboard/profile"
         className={cn(
           "flex items-center gap-3 rounded-lg p-2 text-sm font-medium transition-colors hover:bg-muted",
-          pathname === "/admin/profile" && "bg-muted"
+          pathname === "/dashboard/profile" && "bg-muted"
         )}
       >
         <Avatar className="h-9 w-9 border">
