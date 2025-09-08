@@ -30,7 +30,7 @@ export default function AdminPage() {
 
   const fetchData = useCallback(async () => {
     // Hardcoded for now, will be replaced with authenticated user
-    const result = await getArtistByHandle("melodybloom");
+    const result = await getArtistByHandle("DevDugg");
     if ("errors" in result) {
       setError("Could not load artist data. Please try again later.");
     } else {
