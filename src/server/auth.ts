@@ -52,12 +52,15 @@ export const signup = withErrorHandler(
     const { error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: `${(await headers()).get("origin")}/auth/confirm`,
+      },
     });
 
     if (error) {
       throw new ModelError(error.message);
     }
 
-    return redirect("/dashboard");
+    return redirect("/confirm-email");
   }
 );

@@ -3,8 +3,8 @@ import { type User } from "@supabase/supabase-js";
 
 export class Middleware {
   private protectedRoutes = ["/dashboard"];
-  private authRoutes = ["/login"];
-  private publicRoutes = ["/"];
+  private authRoutes = ["/login", "/signup"];
+  private publicRoutes = ["/", "/auth/confirm"];
 
   async handle(request: NextRequest, user: User | null) {
     const { pathname } = request.nextUrl;
@@ -15,6 +15,9 @@ export class Middleware {
     const isAuthRoute = this.authRoutes.some((route) =>
       pathname.startsWith(route)
     );
+    const isPublicRoute = this.publicRoutes.some((route) =>
+      pathname.startsWith(route)
+    );
 
     if (isProtectedRoute && !user) {
       return NextResponse.redirect(new URL("/login", request.url));
@@ -22,6 +25,10 @@ export class Middleware {
 
     if (isAuthRoute && user) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+
+    if (isPublicRoute) {
+      return NextResponse.next();
     }
 
     return NextResponse.next();

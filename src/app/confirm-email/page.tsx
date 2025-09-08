@@ -1,0 +1,35 @@
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import Link from "next/link";
+
+export default function ConfirmEmailPage() {
+  return (
+    <div className="flex h-screen items-center justify-center">
+      <Card className="w-full max-w-sm">
+        <CardHeader className="text-center">
+          <CardTitle>Confirm Your Email</CardTitle>
+          <CardDescription>
+            We've sent a confirmation link to your email address. Please check
+            your inbox to complete the registration.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="mt-4 text-center text-sm text-muted-foreground">
+            Already confirmed?{" "}
+            <Link
+              href="/login"
+              className="font-semibold underline-offset-4 hover:underline"
+            >
+              Sign in
+            </Link>
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
