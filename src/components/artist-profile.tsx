@@ -69,7 +69,7 @@ export function ArtistProfile({ artist }: { artist: Artist }) {
         variants={FADE_UP_ANIMATION_VARIANTS}
         className="flex flex-col items-center text-center"
       >
-        <Avatar className="size-28 border-2 border-background shadow-lg">
+        <Avatar className="size-28 border-2 border-border shadow-lg">
           <AvatarImage src={artist.image ?? undefined} alt={artist.name} />
           <AvatarFallback>
             {artist.name

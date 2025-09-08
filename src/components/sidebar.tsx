@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { LinkIcon } from "lucide-react";
+import { LinkIcon, Palette, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { getArtistByHandle } from "@/server/artists";
@@ -15,9 +15,20 @@ export function Sidebar({ artist }: { artist: Artist }) {
 
   const navItems = [
     {
+      href: "/dashboard/profile",
+      label: "Profile",
+      icon: User,
+    },
+    {
       href: "/dashboard/links",
       label: "Links",
       icon: LinkIcon,
+    },
+
+    {
+      href: "/dashboard/themes",
+      label: "Themes",
+      icon: Palette,
     },
   ];
 
@@ -31,11 +42,9 @@ export function Sidebar({ artist }: { artist: Artist }) {
 
   return (
     <div className="flex h-full max-h-screen flex-col gap-4">
-      <Link
-        href="/dashboard/profile"
+      <div
         className={cn(
-          "flex items-center gap-3 rounded-lg p-2 text-sm font-medium transition-colors hover:bg-muted",
-          pathname === "/dashboard/profile" && "bg-muted"
+          "flex items-center gap-3 rounded-lg p-2 text-sm font-medium"
         )}
       >
         <Avatar className="h-9 w-9 border">
@@ -51,7 +60,7 @@ export function Sidebar({ artist }: { artist: Artist }) {
           <span className="font-semibold tracking-tight">{artist.name}</span>
           <span className="text-xs text-muted-foreground">@{artist.slug}</span>
         </div>
-      </Link>
+      </div>
       <div className="flex-1">
         <nav className="flex flex-col gap-1">
           {navItems.map((item) => (
