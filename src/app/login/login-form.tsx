@@ -50,7 +50,7 @@ export function LoginForm() {
         </div>
         <SubmitButton />
       </form>
-      <div className="my-4 flex items-center">
+      {/* <div className="my-4 flex items-center">
         <div className="flex-grow border-t border-gray-300" />
         <span className="mx-4 text-xs text-gray-500">OR</span>
         <div className="flex-grow border-t border-gray-300" />
@@ -60,7 +60,7 @@ export function LoginForm() {
           <ChromeIcon className="mr-2 h-4 w-4" />
           Sign in with Google
         </Button>
-      </form>
+      </form> */}
     </>
   );
 }
