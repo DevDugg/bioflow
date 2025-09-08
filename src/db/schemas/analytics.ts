@@ -1,17 +1,8 @@
-import {
-  pgTable,
-  uuid,
-  timestamp,
-  text,
-  index,
-  pgPolicy,
-} from "drizzle-orm/pg-core";
+import { pgTable, uuid, timestamp, text, index } from "drizzle-orm/pg-core";
 import { meta } from "./utils";
 import { links } from "./links";
 import { owners } from "./owners";
-import { relations, sql } from "drizzle-orm";
-import { authenticatedRole, authUid } from "drizzle-orm/supabase";
-import { artists } from "./artists";
+import { relations } from "drizzle-orm";
 
 export const clicks = pgTable(
   "clicks",
@@ -35,11 +26,6 @@ export const clicks = pgTable(
   (table) => [
     index("clicks_link_ts_idx").on(table.linkId, table.ts),
     index("clicks_owner_ts_idx").on(table.ownerId, table.ts),
-    pgPolicy("Allow owners to read analytics for their artist", {
-      for: "select",
-      to: authenticatedRole,
-      using: sql`exists (select 1 from links join artists on links.artist_id = artists.id where links.id = ${table.linkId} and artists.owner_id = ${authUid})`,
-    }),
   ]
 );
 

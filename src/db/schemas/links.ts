@@ -1,15 +1,7 @@
-import {
-  pgTable,
-  text,
-  uuid,
-  integer,
-  index,
-  pgPolicy,
-} from "drizzle-orm/pg-core";
-import { relations, sql } from "drizzle-orm";
+import { pgTable, text, uuid, integer, index } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 import { meta, timestamps } from "./utils";
 import { artists } from "./artists";
-import { authenticatedRole, authUid } from "drizzle-orm/supabase";
 
 export const links = pgTable(
   "links",
@@ -25,29 +17,7 @@ export const links = pgTable(
     badge: text("badge"),
     ...timestamps,
   },
-  (table) => [
-    index("links_artist_order_idx").on(table.artistId, table.order),
-    pgPolicy("Allow public read access to links", {
-      for: "select",
-      using: sql`true`,
-    }),
-    pgPolicy("Allow authenticated users to insert links for their artist", {
-      for: "insert",
-      to: authenticatedRole,
-      withCheck: sql`exists (select 1 from artists where artists.id = ${table.artistId} and artists.owner_id = ${authUid})`,
-    }),
-    pgPolicy("Allow owners to update their links", {
-      for: "update",
-      to: authenticatedRole,
-      using: sql`exists (select 1 from artists where artists.id = ${table.artistId} and artists.owner_id = ${authUid})`,
-      withCheck: sql`exists (select 1 from artists where artists.id = ${table.artistId} and artists.owner_id = ${authUid})`,
-    }),
-    pgPolicy("Allow owners to delete their links", {
-      for: "delete",
-      to: authenticatedRole,
-      using: sql`exists (select 1 from artists where artists.id = ${table.artistId} and artists.owner_id = ${authUid})`,
-    }),
-  ]
+  (table) => [index("links_artist_order_idx").on(table.artistId, table.order)]
 );
 
 export const linksRelations = relations(links, ({ one }) => ({
