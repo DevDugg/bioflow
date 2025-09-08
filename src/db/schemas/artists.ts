@@ -5,11 +5,13 @@ import {
   jsonb,
   index,
   uniqueIndex,
+  pgPolicy,
 } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import { meta, timestamps } from "./utils";
 import { links } from "./links";
 import { owners } from "./owners";
+import { authenticatedRole, authUid } from "drizzle-orm/supabase";
 
 export const artists = pgTable(
   "artists",
@@ -40,6 +42,26 @@ export const artists = pgTable(
   (table) => [
     uniqueIndex("artists_slug_unique").on(table.slug),
     index("artists_owner_idx").on(table.ownerId),
+    pgPolicy("Allow public read access to artists", {
+      for: "select",
+      using: sql`true`,
+    }),
+    pgPolicy("Allow authenticated users to insert their own artist", {
+      for: "insert",
+      to: authenticatedRole,
+      withCheck: sql`${authUid} = owner_id`,
+    }),
+    pgPolicy("Allow owners to update their own artist", {
+      for: "update",
+      to: authenticatedRole,
+      using: sql`${authUid} = owner_id`,
+      withCheck: sql`${authUid} = owner_id`,
+    }),
+    pgPolicy("Allow owners to delete their own artist", {
+      for: "delete",
+      to: authenticatedRole,
+      using: sql`${authUid} = owner_id`,
+    }),
   ]
 );
 
