@@ -42,3 +42,22 @@ export const loginWithGoogle = withErrorHandler(async (): Promise<void> => {
 
   return redirect(data.url);
 });
+
+export const signup = withErrorHandler(
+  async (prevState: any, formData: FormData): Promise<void> => {
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    const supabase = await createClient();
+
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (error) {
+      throw new ModelError(error.message);
+    }
+
+    return redirect("/dashboard");
+  }
+);
