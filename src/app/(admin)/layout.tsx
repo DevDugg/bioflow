@@ -1,12 +1,32 @@
 import { Sidebar } from "@/components/sidebar";
-import { getArtistByHandle } from "@/server/artists";
+import { artistExists, getArtistByHandle } from "@/server/artists";
+import { redirect } from "next/navigation";
+import { headers } from "next/headers";
+import { createClient } from "../../../supabase/server";
 
 export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const artist = await getArtistByHandle("DevDugg");
+  const pathname = (await headers()).get("next-url");
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return redirect("/login");
+  }
+
+  const hasArtist = await artistExists(user.id);
+
+  if (!hasArtist && pathname !== "/onboarding") {
+    redirect("/onboarding");
+  }
+
+  // TODO: Replace with a better way to get the current user's artist
+  const artist = hasArtist ? await getArtistByHandle("DevDugg") : null;
 
   return (
     <div className="grid min-h-screen w-full lg:grid-cols-[280px_1fr]">

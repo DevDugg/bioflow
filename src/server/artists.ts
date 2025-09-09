@@ -10,6 +10,9 @@ import { BadRequestError } from "./errors/bad-request-error";
 import { revalidatePath } from "next/cache";
 import { createSupabaseAdminClient } from "../../supabase/admin";
 import { ModelError } from "./errors/model-error";
+import { createClient } from "../../supabase/server";
+import { owners } from "@/db/schemas/owners";
+import { redirect } from "next/navigation";
 
 const GetArtistByHandlePayload = z.string().min(1, "Handle is required");
 
@@ -35,6 +38,80 @@ export const getArtistByHandle = withErrorHandler(async (handle: string) => {
 
   return artist;
 });
+
+export const artistExists = withErrorHandler(async (userId: string) => {
+  const result = await db
+    .select({
+      id: artists.id,
+    })
+    .from(artists)
+    .where(eq(artists.ownerId, userId));
+
+  return result.length > 0;
+});
+
+export const onboardUser = withErrorHandler(
+  async (prevState: any, formData: FormData) => {
+    const data = {
+      name: formData.get("name") as string,
+      slug: formData.get("slug") as string,
+      description: formData.get("description") as string,
+      avatar: formData.get("avatar") as File,
+    };
+
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      throw new ModelError("User not found");
+    }
+
+    const existingArtist = await db.query.artists.findFirst({
+      where: eq(artists.slug, data.slug),
+    });
+
+    if (existingArtist) {
+      throw new ModelError("Username is already in use.");
+    }
+
+    let newImageUrl: string | undefined = undefined;
+    if (data.avatar && data.avatar.size > 0) {
+      const supabaseAdmin = createSupabaseAdminClient();
+      const filePath = `${user.id}/${Date.now()}-${data.avatar.name}`;
+
+      const { error: uploadError } = await supabaseAdmin.storage
+        .from("avatars")
+        .upload(filePath, data.avatar);
+
+      if (uploadError) {
+        throw new ModelError(uploadError.message);
+      }
+
+      const { data: publicUrl } = supabaseAdmin.storage
+        .from("avatars")
+        .getPublicUrl(filePath);
+      newImageUrl = publicUrl.publicUrl;
+    }
+
+    await db.transaction(async (tx) => {
+      await tx.insert(owners).values({
+        id: user.id,
+        name: data.name,
+      });
+      await tx.insert(artists).values({
+        ownerId: user.id,
+        name: data.name,
+        slug: data.slug,
+        description: data.description,
+        image: newImageUrl,
+      });
+    });
+
+    return redirect("/dashboard");
+  }
+);
 
 const UpdateArtistPayload = z.object({
   id: z.uuid(),

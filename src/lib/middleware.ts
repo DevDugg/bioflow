@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { type User } from "@supabase/supabase-js";
 
 export class Middleware {
-  private protectedRoutes = ["/dashboard"];
+  private protectedRoutes = ["/dashboard", "/onboarding"];
   private authRoutes = ["/login", "/signup"];
   private publicRoutes = ["/", "/auth/confirm"];
 
@@ -25,10 +25,6 @@ export class Middleware {
 
     if (isAuthRoute && user) {
       return NextResponse.redirect(new URL("/dashboard", request.url));
-    }
-
-    if (isPublicRoute) {
-      return NextResponse.next();
     }
 
     return NextResponse.next();
