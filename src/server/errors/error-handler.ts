@@ -1,85 +1,60 @@
-import { NextRequest } from "next/server";
-import { CustomError } from "@/server/errors/custom-error";
+import { ZodError } from "zod";
+import { fromZodError } from "zod-validation-error";
+import { BadRequestError } from "./bad-request-error";
+import { ModelError } from "./model-error";
+import { NotFoundError } from "./not-found-error";
+import { UnauthorizedError } from "./unauthorized-error";
+import { logger } from "@/lib/logger";
+import { headers } from "next/headers";
 
-type ApiHandler = (req: NextRequest) => Promise<Response>;
-type ServerAction = (...args: any[]) => Promise<any>;
-
-interface ErrorHandlerOptions {
-  isDevelopment?: boolean;
-}
-
-export function withErrorHandler(
-  handler: ApiHandler,
-  options?: ErrorHandlerOptions,
-): ApiHandler;
-export function withErrorHandler(
-  handler: ServerAction,
-  options?: ErrorHandlerOptions,
-): ServerAction;
-export function withErrorHandler(
-  handler: ApiHandler | ServerAction,
-  options: ErrorHandlerOptions = {
-    isDevelopment: process.env.NODE_ENV === "development",
-  },
-): ApiHandler | ServerAction {
-  return async (...args: any[]) => {
+export function withErrorHandler<T extends (...args: any[]) => any>(fn: T) {
+  return async function (
+    ...args: Parameters<T>
+  ): Promise<ReturnType<T> | { errors: { message: string }[] }> {
     try {
-      return await (handler as (...args: any[]) => any)(...args);
-    } catch (err: any) {
-      // Next.js redirect throws an error, so we need to handle it
-      if (err.digest?.startsWith("NEXT_REDIRECT")) {
-        throw err;
+      return await fn(...args);
+    } catch (error) {
+      const requestId = (await headers()).get("x-vercel-id");
+      const log = logger.child({ requestId });
+
+      let errorMessage = "An unexpected error occurred.";
+      let statusCode = 500;
+
+      if (error instanceof ZodError) {
+        errorMessage = fromZodError(error).message;
+        statusCode = 400;
+      } else if (error instanceof BadRequestError) {
+        errorMessage = error.message;
+        statusCode = 400;
+      } else if (error instanceof UnauthorizedError) {
+        errorMessage = error.message;
+        statusCode = 401;
+      } else if (error instanceof NotFoundError) {
+        errorMessage = error.message;
+        statusCode = 404;
+      } else if (error instanceof ModelError) {
+        errorMessage = error.message;
+        statusCode = 422;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
       }
 
-      const isApiHandler =
-        args.length > 0 &&
-        args[0] &&
-        typeof args[0] === "object" &&
-        "nextUrl" in args[0] &&
-        "method" in args[0];
+      log.error(
+        {
+          error: {
+            name: (error as Error).name,
+            message: (error as Error).message,
+            stack: (error as Error).stack,
+            cause: (error as Error).cause,
+          },
+          statusCode,
+        },
+        errorMessage
+      );
 
-      if (err instanceof CustomError) {
-        // Log critical server-side custom errors
-        if (err.statusCode >= 500) {
-          console.error(
-            `[${new Date().toISOString()}] Critical CustomError:`,
-            err.serializeErrors(),
-          );
-        }
-
-        if (isApiHandler) {
-          return new Response(
-            JSON.stringify({ errors: err.serializeErrors() }),
-            {
-              status: err.statusCode,
-              headers: { "Content-Type": "application/json" },
-            },
-          );
-        } else {
-          // For server actions, return error in a structured format
-          return { errors: err.serializeErrors() };
-        }
-      }
-
-      // Log all other unexpected errors
-      console.error(`[${new Date().toISOString()}] Unhandled Error:`, err);
-
-      // hide stack trace in production for the generic response
-      const errorMessage =
-        options.isDevelopment && err instanceof Error
-          ? err.message
-          : "Something went wrong";
-
-      const errorResponse = { errors: [{ message: errorMessage }] };
-
-      if (isApiHandler) {
-        return new Response(JSON.stringify(errorResponse), {
-          status: 500,
-          headers: { "Content-Type": "application/json" },
-        });
-      } else {
-        return errorResponse;
-      }
+      return {
+        errors: [{ message: errorMessage }],
+      };
     }
   };
 }

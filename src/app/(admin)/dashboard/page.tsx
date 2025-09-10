@@ -41,6 +41,9 @@ function StatCard({
 
 async function DashboardStats() {
   const stats = await getDashboardStats();
+  if ("errors" in stats) {
+    return <div>Error: {stats.errors[0].message}</div>;
+  }
   return (
     <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       <StatCard
@@ -60,11 +63,17 @@ async function DashboardStats() {
 
 async function ClicksChartData() {
   const chartData = await getClicksChartData();
+  if ("errors" in chartData) {
+    return <div>Error: {chartData.errors[0].message}</div>;
+  }
   return <ClicksChart data={chartData} />;
 }
 
 async function RecentClicks() {
   const recentClicks = await getRecentClicks();
+  if ("errors" in recentClicks) {
+    return <div>Error: {recentClicks.errors[0].message}</div>;
+  }
   return <RecentClicksTable clicks={recentClicks} />;
 }
 

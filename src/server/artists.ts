@@ -127,7 +127,7 @@ export const onboardUser = withErrorHandler(
     });
 
     return redirect("/dashboard");
-  },
+  }
 );
 
 const UpdateArtistPayload = z.object({
@@ -140,12 +140,12 @@ const UpdateArtistPayload = z.object({
     .optional()
     .refine(
       (file) => !file || file.size < 4 * 1024 * 1024,
-      "File must be less than 4MB",
+      "File must be less than 4MB"
     )
     .refine(
       (file) =>
         !file || ["image/jpeg", "image/png", "image/webp"].includes(file.type),
-      "Only JPG, PNG, and WEBP formats are allowed",
+      "Only JPG, PNG, and WEBP formats are allowed"
     ),
 });
 
@@ -227,5 +227,5 @@ export const updateArtistTheme = withErrorHandler(
     revalidatePath(`/${updatedArtist[0].slug}`);
 
     return updatedArtist[0];
-  },
+  }
 );
