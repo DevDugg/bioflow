@@ -5,15 +5,17 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { DollarSign, Link, MousePointerClick, Search } from "lucide-react";
+import { DollarSign, Link, MousePointerClick } from "lucide-react";
 import { ClicksChart } from "@/components/clicks-chart";
 import { RecentClicksTable } from "@/components/recent-clicks-table";
-import { Input } from "@/components/ui/input";
 import {
   getClicksChartData,
   getDashboardStats,
   getRecentClicks,
 } from "@/server/analytics";
+import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
 
 function StatCard({
   title,
@@ -37,11 +39,36 @@ function StatCard({
   );
 }
 
-export default async function DashboardPage() {
+async function DashboardStats() {
   const stats = await getDashboardStats();
-  const recentClicks = await getRecentClicks();
-  const chartData = await getClicksChartData();
+  return (
+    <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <StatCard
+        title="Total Clicks"
+        value={stats.totalClicks}
+        icon={MousePointerClick}
+      />
+      <StatCard title="Total Links" value={stats.totalLinks} icon={Link} />
+      <StatCard
+        title="Avg. Clicks / Link"
+        value={stats.avgClicks}
+        icon={DollarSign}
+      />
+    </div>
+  );
+}
 
+async function ClicksChartData() {
+  const chartData = await getClicksChartData();
+  return <ClicksChart data={chartData} />;
+}
+
+async function RecentClicks() {
+  const recentClicks = await getRecentClicks();
+  return <RecentClicksTable clicks={recentClicks} />;
+}
+
+export default async function DashboardPage() {
   return (
     <div className="p-4 md:p-8">
       <h1 className="text-2xl font-bold">Dashboard</h1>
@@ -49,19 +76,17 @@ export default async function DashboardPage() {
         A high-level overview of your link performance.
       </p>
 
-      <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <StatCard
-          title="Total Clicks"
-          value={stats.totalClicks}
-          icon={MousePointerClick}
-        />
-        <StatCard title="Total Links" value={stats.totalLinks} icon={Link} />
-        <StatCard
-          title="Avg. Clicks / Link"
-          value={stats.avgClicks}
-          icon={DollarSign}
-        />
-      </div>
+      <Suspense
+        fallback={
+          <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <Skeleton className="h-28" />
+            <Skeleton className="h-28" />
+            <Skeleton className="h-28" />
+          </div>
+        }
+      >
+        <DashboardStats />
+      </Suspense>
 
       <div className="mt-8">
         <Card>
@@ -72,27 +97,25 @@ export default async function DashboardPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ClicksChart data={chartData} />
+            <Suspense fallback={<Skeleton className="h-[300px]" />}>
+              <ClicksChartData />
+            </Suspense>
           </CardContent>
         </Card>
       </div>
 
       <div className="mt-8">
         <Card>
-          <CardHeader className="flex-row items-center justify-between">
-            <div>
-              <CardTitle>Recent Clicks</CardTitle>
-              <CardDescription>
-                A list of the most recent clicks on your links.
-              </CardDescription>
-            </div>
-            <div className="relative">
-              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search by link label..." className="pl-8" />
-            </div>
+          <CardHeader>
+            <CardTitle>Recent Clicks</CardTitle>
+            <CardDescription>
+              A list of the most recent clicks on your links.
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <RecentClicksTable clicks={recentClicks} />
+            <Suspense fallback={<TableSkeleton columns={3} />}>
+              <RecentClicks />
+            </Suspense>
           </CardContent>
         </Card>
       </div>

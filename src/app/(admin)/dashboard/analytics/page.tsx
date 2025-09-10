@@ -16,10 +16,58 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
 import { getAnalytics, getFilterValues } from "@/server/analytics";
 import { format } from "date-fns";
+import { Suspense } from "react";
 
 export type ClickType = Awaited<ReturnType<typeof getAnalytics>>[number];
+
+async function AnalyticsTable({
+  searchParams,
+}: {
+  searchParams: {
+    from?: string;
+    to?: string;
+    country?: string;
+    device?: string;
+    ref?: string;
+  };
+}) {
+  const data = await getAnalytics(searchParams);
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>Link</TableHead>
+          <TableHead>Date</TableHead>
+          <TableHead>Country</TableHead>
+          <TableHead>Device</TableHead>
+          <TableHead>Referrer</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {data.length === 0 ? (
+          <TableRow>
+            <TableCell colSpan={5} className="text-center">
+              No data to display.
+            </TableCell>
+          </TableRow>
+        ) : (
+          data.map((click: ClickType) => (
+            <TableRow key={click.id}>
+              <TableCell>{click.link?.label ?? "N/A"}</TableCell>
+              <TableCell>{format(new Date(click.ts), "LLL dd, y")}</TableCell>
+              <TableCell>{click.country ?? "N/A"}</TableCell>
+              <TableCell>{click.device ?? "N/A"}</TableCell>
+              <TableCell>{click.ref ?? "N/A"}</TableCell>
+            </TableRow>
+          ))
+        )}
+      </TableBody>
+    </Table>
+  );
+}
 
 export default async function AnalyticsPage({
   searchParams,
@@ -32,7 +80,6 @@ export default async function AnalyticsPage({
     ref?: string;
   };
 }) {
-  const data = await getAnalytics(searchParams);
   const filterValues = await getFilterValues();
 
   return (
@@ -54,38 +101,9 @@ export default async function AnalyticsPage({
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Link</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Country</TableHead>
-                <TableHead>Device</TableHead>
-                <TableHead>Referrer</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {data.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="text-center">
-                    No data to display.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                data.map((click: ClickType) => (
-                  <TableRow key={click.id}>
-                    <TableCell>{click.link?.label ?? "N/A"}</TableCell>
-                    <TableCell>
-                      {format(new Date(click.ts), "LLL dd, y")}
-                    </TableCell>
-                    <TableCell>{click.country ?? "N/A"}</TableCell>
-                    <TableCell>{click.device ?? "N/A"}</TableCell>
-                    <TableCell>{click.ref ?? "N/A"}</TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+          <Suspense fallback={<TableSkeleton columns={5} />}>
+            <AnalyticsTable searchParams={searchParams} />
+          </Suspense>
         </CardContent>
       </Card>
     </div>

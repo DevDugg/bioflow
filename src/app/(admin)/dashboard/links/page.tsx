@@ -19,6 +19,8 @@ import {
 import { getCurrentUser } from "@/server/auth";
 import { getArtistByOwnerId } from "@/server/artists";
 import { redirect } from "next/navigation";
+import { Suspense } from "react";
+import { TableSkeleton } from "@/components/ui/table-skeleton";
 
 export default async function AdminPage() {
   const user = await getCurrentUser();
@@ -54,7 +56,9 @@ export default async function AdminPage() {
           </Dialog>
         </CardHeader>
         <CardContent>
-          <LinksTable artist={artist} />
+          <Suspense fallback={<TableSkeleton columns={6} rows={3} />}>
+            <LinksTable artist={artist} />
+          </Suspense>
         </CardContent>
       </Card>
     </div>
