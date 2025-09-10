@@ -9,7 +9,11 @@ import { DollarSign, Link, MousePointerClick, Search } from "lucide-react";
 import { ClicksChart } from "@/components/clicks-chart";
 import { RecentClicksTable } from "@/components/recent-clicks-table";
 import { Input } from "@/components/ui/input";
-import { getDashboardStats, getRecentClicks } from "@/server/analytics";
+import {
+  getClicksChartData,
+  getDashboardStats,
+  getRecentClicks,
+} from "@/server/analytics";
 
 function StatCard({
   title,
@@ -36,6 +40,7 @@ function StatCard({
 export default async function DashboardPage() {
   const stats = await getDashboardStats();
   const recentClicks = await getRecentClicks();
+  const chartData = await getClicksChartData();
 
   return (
     <div className="p-4 md:p-8">
@@ -67,7 +72,7 @@ export default async function DashboardPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ClicksChart />
+            <ClicksChart data={chartData} />
           </CardContent>
         </Card>
       </div>

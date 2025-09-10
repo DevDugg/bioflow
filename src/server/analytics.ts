@@ -4,9 +4,13 @@ import { db } from "@/db/client";
 import { clicks } from "@/db/schemas/analytics";
 import { artists } from "@/db/schemas/artists";
 import { links } from "@/db/schemas/links";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { withErrorHandler } from "./errors/error-handler";
 import { getCurrentUser } from "./auth";
+import { redirect } from "next/navigation";
+import { headers } from "next/headers";
+import { subDays, format } from "date-fns";
+import { NotFoundError } from "./errors/not-found-error";
 
 export const getDashboardStats = withErrorHandler(async () => {
   const user = await getCurrentUser();
@@ -45,4 +49,37 @@ export const getRecentClicks = withErrorHandler(async () => {
       },
     },
   });
+});
+
+export const getClicksChartData = withErrorHandler(async () => {
+  const user = await getCurrentUser();
+  const today = new Date();
+  const last7Days = subDays(today, 7);
+
+  const dailyClicks = await db
+    .select({
+      date: sql<string>`date_trunc('day', ${clicks.ts})`.mapWith(String),
+      count: sql<number>`count(${clicks.id})`.mapWith(Number),
+    })
+    .from(clicks)
+    .where(
+      and(eq(clicks.ownerId, user.id), gte(clicks.ts, last7Days.toISOString()))
+    )
+    .groupBy(sql`date_trunc('day', ${clicks.ts})`);
+
+  const clicksByDate = dailyClicks.reduce((acc, { date, count }) => {
+    acc[format(new Date(date), "yyyy-MM-dd")] = count;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const chartData = Array.from({ length: 7 }, (_, i) => {
+    const date = subDays(today, i);
+    const formattedDate = format(date, "yyyy-MM-dd");
+    return {
+      name: format(date, "EEE"),
+      clicks: clicksByDate[formattedDate] || 0,
+    };
+  }).reverse();
+
+  return chartData;
 });

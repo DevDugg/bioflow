@@ -10,17 +10,14 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const data = [
-  { name: "Mon", clicks: 400 },
-  { name: "Tue", clicks: 300 },
-  { name: "Wed", clicks: 200 },
-  { name: "Thu", clicks: 278 },
-  { name: "Fri", clicks: 189 },
-  { name: "Sat", clicks: 239 },
-  { name: "Sun", clicks: 349 },
-];
+interface ClicksChartProps {
+  data: {
+    name: string;
+    clicks: number;
+  }[];
+}
 
-export function ClicksChart() {
+export function ClicksChart({ data }: ClicksChartProps) {
   return (
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={data}>
