@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { LinkIcon, Palette, User } from "lucide-react";
+import { Home, LinkIcon, Palette, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { getArtistByHandle } from "@/server/artists";
@@ -17,6 +17,11 @@ export function Sidebar({ artist }: { artist: Artist }) {
   const pathname = usePathname();
 
   const navItems = [
+    {
+      href: "/dashboard",
+      label: "Overview",
+      icon: Home,
+    },
     {
       href: "/dashboard/profile",
       label: "Profile",
