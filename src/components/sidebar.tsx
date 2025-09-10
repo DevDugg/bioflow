@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Home, LinkIcon, Palette, User } from "lucide-react";
+import { AreaChart, Home, LinkIcon, Palette, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { getArtistByHandle } from "@/server/artists";
@@ -21,6 +21,11 @@ export function Sidebar({ artist }: { artist: Artist }) {
       href: "/dashboard",
       label: "Overview",
       icon: Home,
+    },
+    {
+      href: "/dashboard/analytics",
+      label: "Analytics",
+      icon: AreaChart,
     },
     {
       href: "/dashboard/profile",

@@ -112,7 +112,7 @@ export function ArtistProfile({ artist }: { artist: Artist }) {
                 <Link
                   href={`/r/${link.id}`}
                   target="_blank"
-                  rel="noopener noreferrer"
+                  rel="noopener"
                   className="flex items-center justify-center"
                 >
                   <Icon className="mr-2 h-4 w-4" />

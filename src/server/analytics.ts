@@ -4,13 +4,14 @@ import { db } from "@/db/client";
 import { clicks } from "@/db/schemas/analytics";
 import { artists } from "@/db/schemas/artists";
 import { links } from "@/db/schemas/links";
-import { and, desc, eq, gte, sql } from "drizzle-orm";
+import { and, desc, eq, gte, sql, lte } from "drizzle-orm";
 import { withErrorHandler } from "./errors/error-handler";
 import { getCurrentUser } from "./auth";
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
-import { subDays, format } from "date-fns";
-import { NotFoundError } from "./errors/not-found-error";
+
+import { subDays, format, startOfDay, endOfDay } from "date-fns";
+
+import { z } from "zod";
 
 export const getDashboardStats = withErrorHandler(async () => {
   const user = await getCurrentUser();
@@ -83,3 +84,36 @@ export const getClicksChartData = withErrorHandler(async () => {
 
   return chartData;
 });
+
+const AnalyticsPayload = z.object({
+  from: z.string().optional(),
+  to: z.string().optional(),
+});
+
+export const getAnalytics = withErrorHandler(
+  async (payload: z.infer<typeof AnalyticsPayload>) => {
+    const user = await getCurrentUser();
+    const { from, to } = AnalyticsPayload.parse(payload);
+
+    const fromDate = from ? startOfDay(new Date(from)) : subDays(new Date(), 7);
+    const toDate = to ? endOfDay(new Date(to)) : new Date();
+
+    const data = await db.query.clicks.findMany({
+      where: and(
+        eq(clicks.ownerId, user.id),
+        gte(clicks.ts, fromDate.toISOString()),
+        lte(clicks.ts, toDate.toISOString())
+      ),
+      with: {
+        link: {
+          columns: {
+            label: true,
+          },
+        },
+      },
+      orderBy: [desc(clicks.ts)],
+    });
+
+    return data;
+  }
+);
