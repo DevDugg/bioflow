@@ -160,3 +160,23 @@ export const exportAnalytics = withErrorHandler(
     return csv;
   }
 );
+
+export const getFilterValues = withErrorHandler(async () => {
+  const user = await getCurrentUser();
+  const data = await db
+    .select({
+      country: clicks.country,
+      device: clicks.device,
+      ref: clicks.ref,
+    })
+    .from(clicks)
+    .where(eq(clicks.ownerId, user.id));
+
+  const countries = [
+    ...new Set(data.map((row) => row.country).filter(Boolean)),
+  ];
+  const devices = [...new Set(data.map((row) => row.device).filter(Boolean))];
+  const refs = [...new Set(data.map((row) => row.ref).filter(Boolean))];
+
+  return { countries, devices, refs };
+});

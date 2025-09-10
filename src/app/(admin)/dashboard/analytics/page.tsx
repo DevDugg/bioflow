@@ -16,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getAnalytics } from "@/server/analytics";
+import { getAnalytics, getFilterValues } from "@/server/analytics";
 import { format } from "date-fns";
 
 export type ClickType = Awaited<ReturnType<typeof getAnalytics>>[number];
@@ -33,6 +33,7 @@ export default async function AnalyticsPage({
   };
 }) {
   const data = await getAnalytics(searchParams);
+  const filterValues = await getFilterValues();
 
   return (
     <div className="p-4 md:p-8">
@@ -47,7 +48,7 @@ export default async function AnalyticsPage({
             </div>
             <div className="flex items-center gap-2">
               <DateRangePicker />
-              <FilterDropdown />
+              <FilterDropdown filterValues={filterValues} />
               <ExportButton />
             </div>
           </div>
