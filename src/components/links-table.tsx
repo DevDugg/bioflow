@@ -62,7 +62,6 @@ type Link = Artist extends { links: Array<any> }
 
 interface LinksTableProps {
   artist: Artist;
-  onLinkUpdated: () => void;
 }
 
 function SortableRow({
@@ -99,7 +98,7 @@ function SortableRow({
   );
 }
 
-export function LinksTable({ artist, onLinkUpdated }: LinksTableProps) {
+export function LinksTable({ artist }: LinksTableProps) {
   const [isPending, startTransition] = useTransition();
   const [linkToDelete, setLinkToDelete] = useState<Link | null>(null);
   const [linkToEdit, setLinkToEdit] = useState<Link | null>(null);
@@ -126,14 +125,8 @@ export function LinksTable({ artist, onLinkUpdated }: LinksTableProps) {
       } else {
         toast.success("Link deleted successfully.");
         setLinkToDelete(null);
-        onLinkUpdated(); // Refresh data on parent
       }
     });
-  };
-
-  const handleEditSuccess = () => {
-    setLinkToEdit(null);
-    onLinkUpdated();
   };
 
   const sensors = useSensors(useSensor(PointerSensor));
@@ -162,7 +155,6 @@ export function LinksTable({ artist, onLinkUpdated }: LinksTableProps) {
           }
         } else {
           toast.success("Link order updated.");
-          onLinkUpdated();
         }
       });
     }
@@ -264,7 +256,6 @@ export function LinksTable({ artist, onLinkUpdated }: LinksTableProps) {
           <LinkForm
             artistId={artist && "id" in artist ? (artist.id as string) : ""}
             initialData={linkToEdit ?? undefined}
-            onSuccess={handleEditSuccess}
           />
         </DialogContent>
       </Dialog>

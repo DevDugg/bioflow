@@ -29,11 +29,10 @@ type LinkFormValues = z.infer<typeof formSchema>;
 
 interface LinkFormProps {
   artistId: string;
-  onSuccess?: () => void;
   initialData?: LinkFormValues & { id: string };
 }
 
-export function LinkForm({ artistId, onSuccess, initialData }: LinkFormProps) {
+export function LinkForm({ artistId, initialData }: LinkFormProps) {
   const [isPending, startTransition] = useTransition();
   const isEditMode = !!initialData;
 
@@ -57,7 +56,6 @@ export function LinkForm({ artistId, onSuccess, initialData }: LinkFormProps) {
           });
         } else {
           toast.success("Link updated successfully.");
-          onSuccess?.();
         }
       } else {
         const result = await createLink({ artistId, ...values });
@@ -69,7 +67,6 @@ export function LinkForm({ artistId, onSuccess, initialData }: LinkFormProps) {
           toast.success("Link created", {
             description: "Your new link has been saved.",
           });
-          onSuccess?.();
         }
       }
     });

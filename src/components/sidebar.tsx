@@ -7,6 +7,9 @@ import { usePathname } from "next/navigation";
 import type { getArtistByHandle } from "@/server/artists";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { logout } from "@/server/auth";
+import { LogOut } from "lucide-react";
+import { Separator } from "./ui/separator";
 
 type Artist = Awaited<ReturnType<typeof getArtistByHandle>>;
 
@@ -77,6 +80,15 @@ export function Sidebar({ artist }: { artist: Artist }) {
             </Button>
           ))}
         </nav>
+      </div>
+      <div>
+        <Separator />
+        <form action={logout as any} className="mt-4">
+          <Button variant="ghost" className="w-full justify-start">
+            <LogOut className="mr-2 h-4 w-4" />
+            Logout
+          </Button>
+        </form>
       </div>
     </div>
   );

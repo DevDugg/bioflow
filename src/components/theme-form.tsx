@@ -61,7 +61,7 @@ export const ThemeForm = memo(function ThemeForm({
 }: ThemeFormProps) {
   const [isPending, startTransition] = useTransition();
   const [defaultTheme, setDefaultTheme] = useState<ThemeFormValues | null>(
-    null
+    null,
   );
 
   useEffect(() => {

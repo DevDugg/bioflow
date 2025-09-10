@@ -39,12 +39,16 @@ export const clicks = pgTable(
       to: authenticatedRole,
       using: sql`exists (select 1 from links join artists on links.artist_id = artists.id where links.id = ${table.linkId} and artists.owner_id = ${authUid})`,
     }),
-  ]
+  ],
 );
 
 export const clicksRelations = relations(clicks, ({ one }) => ({
   owner: one(owners, {
     fields: [clicks.ownerId],
     references: [owners.id],
+  }),
+  link: one(links, {
+    fields: [clicks.linkId],
+    references: [links.id],
   }),
 }));

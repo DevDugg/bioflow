@@ -10,20 +10,36 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
-export interface Click {
+type Click = {
   id: string;
   link: {
     label: string;
-  };
-  geo: {
-    country: string;
-    city: string;
-  };
-  timestamp: string;
-}
+  } | null;
+  country: string | null;
+  ts: string;
+};
 
 interface RecentClicksTableProps {
   clicks: Click[];
+}
+
+function getRelativeTime(timestamp: string) {
+  const now = new Date();
+  const past = new Date(timestamp);
+  const diffInSeconds = Math.floor((now.getTime() - past.getTime()) / 1000);
+
+  const minutes = Math.floor(diffInSeconds / 60);
+  if (minutes < 60) {
+    return `${minutes} minute${minutes === 1 ? "" : "s"} ago`;
+  }
+
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) {
+    return `${hours} hour${hours === 1 ? "" : "s"} ago`;
+  }
+
+  const days = Math.floor(hours / 24);
+  return `${days} day${days === 1 ? "" : "s"} ago`;
 }
 
 export function RecentClicksTable({ clicks }: RecentClicksTableProps) {
@@ -47,13 +63,15 @@ export function RecentClicksTable({ clicks }: RecentClicksTableProps) {
           )}
           {clicks.map((click) => (
             <TableRow key={click.id}>
-              <TableCell className="font-medium">{click.link.label}</TableCell>
-              <TableCell>
-                <Badge variant="outline">
-                  {click.geo.city}, {click.geo.country}
-                </Badge>
+              <TableCell className="font-medium">
+                {click.link?.label ?? "N/A"}
               </TableCell>
-              <TableCell>{click.timestamp}</TableCell>
+              <TableCell>
+                {click.country && (
+                  <Badge variant="outline">{click.country}</Badge>
+                )}
+              </TableCell>
+              <TableCell>{getRelativeTime(click.ts)}</TableCell>
             </TableRow>
           ))}
         </TableBody>

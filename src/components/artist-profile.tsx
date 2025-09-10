@@ -101,7 +101,7 @@ export function ArtistProfile({ artist }: { artist: Artist }) {
         className="mt-10 flex w-full flex-col space-y-4"
       >
         {artist.links.map((link: LinkType) => {
-          const Icon = link.icon ? iconMap[link.icon] ?? LinkIcon : LinkIcon;
+          const Icon = link.icon ? (iconMap[link.icon] ?? LinkIcon) : LinkIcon;
           return (
             <motion.div key={link.id} variants={FADE_UP_ANIMATION_VARIANTS}>
               <Button

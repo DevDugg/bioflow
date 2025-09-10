@@ -114,12 +114,8 @@
           "name": "clicks_owner_id_owners_id_fk",
           "tableFrom": "clicks",
           "tableTo": "owners",
-          "columnsFrom": [
-            "owner_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["owner_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -127,12 +123,8 @@
           "name": "clicks_link_id_links_id_fk",
           "tableFrom": "clicks",
           "tableTo": "links",
-          "columnsFrom": [
-            "link_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["link_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -144,9 +136,7 @@
           "name": "Allow owners to read analytics for their artist",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": [
-            "authenticated"
-          ],
+          "to": ["authenticated"],
           "using": "exists (select 1 from links join artists on links.artist_id = artists.id where links.id = \"clicks\".\"link_id\" and artists.owner_id = (select auth.uid()))"
         }
       },
@@ -259,12 +249,8 @@
           "name": "artists_owner_id_owners_id_fk",
           "tableFrom": "artists",
           "tableTo": "owners",
-          "columnsFrom": [
-            "owner_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["owner_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -276,27 +262,21 @@
           "name": "Allow public read access to artists",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": [
-            "public"
-          ],
+          "to": ["public"],
           "using": "true"
         },
         "Allow authenticated users to insert their own artist": {
           "name": "Allow authenticated users to insert their own artist",
           "as": "PERMISSIVE",
           "for": "INSERT",
-          "to": [
-            "authenticated"
-          ],
+          "to": ["authenticated"],
           "withCheck": "(select auth.uid()) = owner_id"
         },
         "Allow owners to update their own artist": {
           "name": "Allow owners to update their own artist",
           "as": "PERMISSIVE",
           "for": "UPDATE",
-          "to": [
-            "authenticated"
-          ],
+          "to": ["authenticated"],
           "using": "(select auth.uid()) = owner_id",
           "withCheck": "(select auth.uid()) = owner_id"
         },
@@ -304,9 +284,7 @@
           "name": "Allow owners to delete their own artist",
           "as": "PERMISSIVE",
           "for": "DELETE",
-          "to": [
-            "authenticated"
-          ],
+          "to": ["authenticated"],
           "using": "(select auth.uid()) = owner_id"
         }
       },
@@ -404,12 +382,8 @@
           "name": "links_artist_id_artists_id_fk",
           "tableFrom": "links",
           "tableTo": "artists",
-          "columnsFrom": [
-            "artist_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["artist_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -421,27 +395,21 @@
           "name": "Allow public read access to links",
           "as": "PERMISSIVE",
           "for": "SELECT",
-          "to": [
-            "public"
-          ],
+          "to": ["public"],
           "using": "true"
         },
         "Allow authenticated users to insert links for their artist": {
           "name": "Allow authenticated users to insert links for their artist",
           "as": "PERMISSIVE",
           "for": "INSERT",
-          "to": [
-            "authenticated"
-          ],
+          "to": ["authenticated"],
           "withCheck": "exists (select 1 from artists where artists.id = \"links\".\"artist_id\" and artists.owner_id = (select auth.uid()))"
         },
         "Allow owners to update their links": {
           "name": "Allow owners to update their links",
           "as": "PERMISSIVE",
           "for": "UPDATE",
-          "to": [
-            "authenticated"
-          ],
+          "to": ["authenticated"],
           "using": "exists (select 1 from artists where artists.id = \"links\".\"artist_id\" and artists.owner_id = (select auth.uid()))",
           "withCheck": "exists (select 1 from artists where artists.id = \"links\".\"artist_id\" and artists.owner_id = (select auth.uid()))"
         },
@@ -449,9 +417,7 @@
           "name": "Allow owners to delete their links",
           "as": "PERMISSIVE",
           "for": "DELETE",
-          "to": [
-            "authenticated"
-          ],
+          "to": ["authenticated"],
           "using": "exists (select 1 from artists where artists.id = \"links\".\"artist_id\" and artists.owner_id = (select auth.uid()))"
         }
       },

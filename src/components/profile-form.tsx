@@ -45,9 +45,9 @@ export function ProfileForm({ artist }: ProfileFormProps) {
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "errors" in artist ? "" : artist.name ?? "",
-      slug: "errors" in artist ? "" : artist.slug ?? "",
-      description: "errors" in artist ? "" : artist.description ?? "",
+      name: "errors" in artist ? "" : (artist.name ?? ""),
+      slug: "errors" in artist ? "" : (artist.slug ?? ""),
+      description: "errors" in artist ? "" : (artist.description ?? ""),
       avatar: undefined,
     },
   });

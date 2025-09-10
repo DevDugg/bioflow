@@ -1,5 +1,3 @@
-"use client";
-
 import {
   Card,
   CardContent,
@@ -9,12 +7,9 @@ import {
 } from "@/components/ui/card";
 import { DollarSign, Link, MousePointerClick, Search } from "lucide-react";
 import { ClicksChart } from "@/components/clicks-chart";
-import {
-  RecentClicksTable,
-  type Click,
-} from "@/components/recent-clicks-table";
+import { RecentClicksTable } from "@/components/recent-clicks-table";
 import { Input } from "@/components/ui/input";
-import { useState, useMemo } from "react";
+import { getDashboardStats, getRecentClicks } from "@/server/analytics";
 
 function StatCard({
   title,
@@ -38,52 +33,9 @@ function StatCard({
   );
 }
 
-const mockClicks: Click[] = [
-  {
-    id: "1",
-    link: { label: "My latest single on Spotify" },
-    geo: { country: "USA", city: "New York" },
-    timestamp: "2 minutes ago",
-  },
-  {
-    id: "2",
-    link: { label: "Official Website" },
-    geo: { country: "UK", city: "London" },
-    timestamp: "5 minutes ago",
-  },
-  {
-    id: "3",
-    link: { label: "Follow on Twitter" },
-    geo: { country: "Canada", city: "Toronto" },
-    timestamp: "10 minutes ago",
-  },
-  {
-    id: "4",
-    link: { label: "My latest single on Spotify" },
-    geo: { country: "Germany", city: "Berlin" },
-    timestamp: "12 minutes ago",
-  },
-  {
-    id: "5",
-    link: { label: "Watch on YouTube" },
-    geo: { country: "Australia", city: "Sydney" },
-    timestamp: "15 minutes ago",
-  },
-];
-
-export default function DashboardPage() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const mockStats = {
-    totalClicks: "1,234",
-    totalLinks: "12",
-    avgClicks: "102.8",
-  };
-
-  const filteredClicks = useMemo(() => {
-    return mockClicks.filter((click) =>
-      click.link.label.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm]);
+export default async function DashboardPage() {
+  const stats = await getDashboardStats();
+  const recentClicks = await getRecentClicks();
 
   return (
     <div className="p-4 md:p-8">
@@ -95,17 +47,13 @@ export default function DashboardPage() {
       <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <StatCard
           title="Total Clicks"
-          value={mockStats.totalClicks}
+          value={stats.totalClicks}
           icon={MousePointerClick}
         />
-        <StatCard
-          title="Total Links"
-          value={mockStats.totalLinks}
-          icon={Link}
-        />
+        <StatCard title="Total Links" value={stats.totalLinks} icon={Link} />
         <StatCard
           title="Avg. Clicks / Link"
-          value={mockStats.avgClicks}
+          value={stats.avgClicks}
           icon={DollarSign}
         />
       </div>
@@ -135,16 +83,11 @@ export default function DashboardPage() {
             </div>
             <div className="relative">
               <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search by link label..."
-                className="pl-8"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+              <Input placeholder="Search by link label..." className="pl-8" />
             </div>
           </CardHeader>
           <CardContent>
-            <RecentClicksTable clicks={filteredClicks} />
+            <RecentClicksTable clicks={recentClicks} />
           </CardContent>
         </Card>
       </div>

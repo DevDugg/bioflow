@@ -30,7 +30,7 @@ export const createLink = withErrorHandler(
     revalidatePath(`/${(await getArtistFromLink(newLink[0].id))?.slug}`);
 
     return newLink[0];
-  }
+  },
 );
 
 const UpdateLinkPayload = z.object({
@@ -59,14 +59,14 @@ export const updateLink = withErrorHandler(
     revalidatePath(`/${(await getArtistFromLink(id))?.slug}`);
 
     return updatedLink[0];
-  }
+  },
 );
 
 const UpdateLinkOrderPayload = z.array(
   z.object({
     id: z.uuid(),
     order: z.number().int(),
-  })
+  }),
 );
 
 export const updateLinkOrder = withErrorHandler(
@@ -97,7 +97,7 @@ export const updateLinkOrder = withErrorHandler(
     }
 
     return { success: true };
-  }
+  },
 );
 
 export const deleteLink = withErrorHandler(async (linkId: string) => {

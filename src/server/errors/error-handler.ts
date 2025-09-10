@@ -10,17 +10,17 @@ interface ErrorHandlerOptions {
 
 export function withErrorHandler(
   handler: ApiHandler,
-  options?: ErrorHandlerOptions
+  options?: ErrorHandlerOptions,
 ): ApiHandler;
 export function withErrorHandler(
   handler: ServerAction,
-  options?: ErrorHandlerOptions
+  options?: ErrorHandlerOptions,
 ): ServerAction;
 export function withErrorHandler(
   handler: ApiHandler | ServerAction,
   options: ErrorHandlerOptions = {
     isDevelopment: process.env.NODE_ENV === "development",
-  }
+  },
 ): ApiHandler | ServerAction {
   return async (...args: any[]) => {
     try {
@@ -43,7 +43,7 @@ export function withErrorHandler(
         if (err.statusCode >= 500) {
           console.error(
             `[${new Date().toISOString()}] Critical CustomError:`,
-            err.serializeErrors()
+            err.serializeErrors(),
           );
         }
 
@@ -53,7 +53,7 @@ export function withErrorHandler(
             {
               status: err.statusCode,
               headers: { "Content-Type": "application/json" },
-            }
+            },
           );
         } else {
           // For server actions, return error in a structured format

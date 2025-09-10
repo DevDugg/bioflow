@@ -1,5 +1,5 @@
 import { Sidebar } from "@/components/sidebar";
-import { artistExists, getArtistByHandle } from "@/server/artists";
+import { artistExists, getArtistByOwnerId } from "@/server/artists";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { createClient } from "../../../supabase/server";
@@ -25,13 +25,12 @@ export default async function AdminLayout({
     redirect("/onboarding");
   }
 
-  // TODO: Replace with a better way to get the current user's artist
-  const artist = hasArtist ? await getArtistByHandle("DevDugg") : null;
+  const artist = hasArtist ? await getArtistByOwnerId(user.id) : null;
 
   return (
     <div className="grid min-h-screen w-full lg:grid-cols-[280px_1fr]">
       <div className="hidden border-r bg-muted/40 lg:block">
-        <div className="flex h-full max-h-screen flex-col gap-2 p-4">
+        <div className="sticky top-0 flex h-full max-h-screen flex-col gap-2 p-4">
           <Sidebar artist={artist} />
         </div>
       </div>

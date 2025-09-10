@@ -1,10 +1,6 @@
-"use client";
-
-import { getArtistByHandle } from "@/server/artists";
 import { LinksTable } from "@/components/links-table";
 import { Button } from "@/components/ui/button";
 import { PlusIcon } from "lucide-react";
-import { useEffect, useState, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
@@ -20,48 +16,16 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { getCurrentUser } from "@/server/auth";
+import { getArtistByOwnerId } from "@/server/artists";
+import { redirect } from "next/navigation";
 
-type Artist = Awaited<ReturnType<typeof getArtistByHandle>>;
-
-export default function AdminPage() {
-  const [artist, setArtist] = useState<Artist | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isCreateDialogOpen, setCreateDialogOpen] = useState(false);
-
-  const fetchData = useCallback(async () => {
-    // Hardcoded for now, will be replaced with authenticated user
-    const result = await getArtistByHandle("DevDugg");
-    if ("errors" in result) {
-      setError("Could not load artist data. Please try again later.");
-    } else {
-      setArtist(result);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
-  const handleSuccess = () => {
-    setCreateDialogOpen(false);
-    fetchData();
-  };
-
-  if (error) {
-    return (
-      <div className="flex h-full items-center justify-center p-4 md:p-8">
-        <p className="text-muted-foreground">{error}</p>
-      </div>
-    );
-  }
+export default async function AdminPage() {
+  const user = await getCurrentUser();
+  const artist = await getArtistByOwnerId(user.id);
 
   if (!artist) {
-    // TODO: Add a proper loading skeleton
-    return (
-      <div className="flex h-full items-center justify-center p-4 md:p-8">
-        <p className="text-muted-foreground">Loading...</p>
-      </div>
-    );
+    redirect("/onboarding");
   }
 
   return (
@@ -74,7 +38,7 @@ export default function AdminPage() {
               Manage your public links.
             </CardDescription>
           </div>
-          <Dialog open={isCreateDialogOpen} onOpenChange={setCreateDialogOpen}>
+          <Dialog>
             <DialogTrigger asChild>
               <Button>
                 <PlusIcon className="mr-2 h-4 w-4" />
@@ -85,12 +49,12 @@ export default function AdminPage() {
               <DialogHeader>
                 <DialogTitle>Create a new link</DialogTitle>
               </DialogHeader>
-              <LinkForm artistId={artist.id} onSuccess={handleSuccess} />
+              <LinkForm artistId={artist.id} />
             </DialogContent>
           </Dialog>
         </CardHeader>
         <CardContent>
-          <LinksTable artist={artist} onLinkUpdated={handleSuccess} />
+          <LinksTable artist={artist} />
         </CardContent>
       </Card>
     </div>

@@ -1,7 +1,9 @@
-import { getArtistByHandle } from "@/server/artists";
+import { getArtistByOwnerId } from "@/server/artists";
 import { ThemeView } from "./theme-view";
+import { getCurrentUser } from "@/server/auth";
 
 export default async function ThemesPage() {
-  const artist = await getArtistByHandle("DevDugg");
+  const user = await getCurrentUser();
+  const artist = await getArtistByOwnerId(user.id);
   return <ThemeView artist={artist} />;
 }

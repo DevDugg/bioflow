@@ -28,19 +28,19 @@ const onboardingSchema = z.object({
     .min(3, "Username must be at least 3 characters.")
     .regex(
       /^[a-zA-Z0-9_]+$/,
-      "Username can only contain letters, numbers, and underscores."
+      "Username can only contain letters, numbers, and underscores.",
     ),
   avatar: z
     .instanceof(File)
     .optional()
     .refine(
       (file) => !file || file.size < 4 * 1024 * 1024,
-      "File must be less than 4MB"
+      "File must be less than 4MB",
     )
     .refine(
       (file) =>
         !file || ["image/jpeg", "image/png", "image/webp"].includes(file.type),
-      "Only JPG, PNG, and WEBP formats are allowed"
+      "Only JPG, PNG, and WEBP formats are allowed",
     ),
   description: z.string().optional(),
 });

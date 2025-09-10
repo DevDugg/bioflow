@@ -47,7 +47,7 @@ export const links = pgTable(
       to: authenticatedRole,
       using: sql`exists (select 1 from artists where artists.id = ${table.artistId} and artists.owner_id = ${authUid})`,
     }),
-  ]
+  ],
 );
 
 export const linksRelations = relations(links, ({ one }) => ({

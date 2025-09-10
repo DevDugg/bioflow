@@ -7,5 +7,5 @@ export const db = drizzle(
     ssl: "require",
     prepare: false,
   }),
-  { schema }
+  { schema },
 );

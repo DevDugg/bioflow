@@ -5,6 +5,26 @@ import { createClient } from "../../supabase/server";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { withErrorHandler } from "@/server/errors/error-handler";
+import { UnauthorizedError } from "./errors/unauthorized-error";
+
+export const getCurrentUser = withErrorHandler(async () => {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    throw new UnauthorizedError();
+  }
+
+  return user;
+});
+
+export const logout = withErrorHandler(async () => {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  return redirect("/login");
+});
 
 export const login = withErrorHandler(
   async (prevState: any, formData: FormData): Promise<void> => {

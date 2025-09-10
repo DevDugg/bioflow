@@ -18,7 +18,7 @@ interface ThemeViewProps {
 
 export function ThemeView({ artist }: ThemeViewProps) {
   const [theme, setTheme] = useState(
-    "errors" in artist ? {} : artist.theme ?? {}
+    "errors" in artist ? {} : (artist.theme ?? {}),
   );
 
   if ("errors" in artist) {

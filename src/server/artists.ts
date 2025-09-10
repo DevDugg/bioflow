@@ -39,6 +39,23 @@ export const getArtistByHandle = withErrorHandler(async (handle: string) => {
   return artist;
 });
 
+export const getArtistByOwnerId = withErrorHandler(async (userId: string) => {
+  const artist = await db.query.artists.findFirst({
+    where: eq(artists.ownerId, userId),
+    with: {
+      links: {
+        orderBy: (links, { asc }) => [asc(links.order)],
+      },
+    },
+  });
+
+  if (!artist) {
+    throw new NotFoundError();
+  }
+
+  return artist;
+});
+
 export const artistExists = withErrorHandler(async (userId: string) => {
   const result = await db
     .select({
@@ -110,7 +127,7 @@ export const onboardUser = withErrorHandler(
     });
 
     return redirect("/dashboard");
-  }
+  },
 );
 
 const UpdateArtistPayload = z.object({
@@ -123,12 +140,12 @@ const UpdateArtistPayload = z.object({
     .optional()
     .refine(
       (file) => !file || file.size < 4 * 1024 * 1024,
-      "File must be less than 4MB"
+      "File must be less than 4MB",
     )
     .refine(
       (file) =>
         !file || ["image/jpeg", "image/png", "image/webp"].includes(file.type),
-      "Only JPG, PNG, and WEBP formats are allowed"
+      "Only JPG, PNG, and WEBP formats are allowed",
     ),
 });
 
@@ -210,5 +227,5 @@ export const updateArtistTheme = withErrorHandler(
     revalidatePath(`/${updatedArtist[0].slug}`);
 
     return updatedArtist[0];
-  }
+  },
 );

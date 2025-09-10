@@ -62,7 +62,7 @@ export const artists = pgTable(
       to: authenticatedRole,
       using: sql`${authUid} = owner_id`,
     }),
-  ]
+  ],
 );
 
 export const artistsRelations = relations(artists, ({ many, one }) => ({

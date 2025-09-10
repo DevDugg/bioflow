@@ -10,13 +10,13 @@ export class Middleware {
     const { pathname } = request.nextUrl;
 
     const isProtectedRoute = this.protectedRoutes.some((route) =>
-      pathname.startsWith(route)
+      pathname.startsWith(route),
     );
     const isAuthRoute = this.authRoutes.some((route) =>
-      pathname.startsWith(route)
+      pathname.startsWith(route),
     );
     const isPublicRoute = this.publicRoutes.some((route) =>
-      pathname.startsWith(route)
+      pathname.startsWith(route),
     );
 
     if (isProtectedRoute && !user) {
