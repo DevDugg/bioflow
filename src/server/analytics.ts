@@ -4,14 +4,12 @@ import { db } from "@/db/client";
 import { clicks } from "@/db/schemas/analytics";
 import { artists } from "@/db/schemas/artists";
 import { links } from "@/db/schemas/links";
-import { and, desc, eq, gte, sql, lte } from "drizzle-orm";
+import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 import { withErrorHandler } from "./errors/error-handler";
 import { getCurrentUser } from "./auth";
-import { redirect } from "next/navigation";
-
 import { subDays, format, startOfDay, endOfDay } from "date-fns";
-
 import { z } from "zod";
+import { ClickType } from "@/app/(admin)/dashboard/analytics/page";
 
 export const getDashboardStats = withErrorHandler(async () => {
   const user = await getCurrentUser();
@@ -88,22 +86,37 @@ export const getClicksChartData = withErrorHandler(async () => {
 const AnalyticsPayload = z.object({
   from: z.string().optional(),
   to: z.string().optional(),
+  country: z.string().optional(),
+  device: z.string().optional(),
+  ref: z.string().optional(),
 });
 
 export const getAnalytics = withErrorHandler(
   async (payload: z.infer<typeof AnalyticsPayload>) => {
     const user = await getCurrentUser();
-    const { from, to } = AnalyticsPayload.parse(payload);
+    const { from, to, country, device, ref } = AnalyticsPayload.parse(payload);
 
     const fromDate = from ? startOfDay(new Date(from)) : subDays(new Date(), 7);
     const toDate = to ? endOfDay(new Date(to)) : new Date();
 
+    const conditions = [
+      eq(clicks.ownerId, user.id),
+      gte(clicks.ts, fromDate.toISOString()),
+      lte(clicks.ts, toDate.toISOString()),
+    ];
+
+    if (country) {
+      conditions.push(eq(clicks.country, country));
+    }
+    if (device) {
+      conditions.push(eq(clicks.device, device));
+    }
+    if (ref) {
+      conditions.push(eq(clicks.ref, ref));
+    }
+
     const data = await db.query.clicks.findMany({
-      where: and(
-        eq(clicks.ownerId, user.id),
-        gte(clicks.ts, fromDate.toISOString()),
-        lte(clicks.ts, toDate.toISOString())
-      ),
+      where: and(...conditions),
       with: {
         link: {
           columns: {
@@ -115,5 +128,35 @@ export const getAnalytics = withErrorHandler(
     });
 
     return data;
+  }
+);
+
+export const exportAnalytics = withErrorHandler(
+  async (payload: z.infer<typeof AnalyticsPayload>) => {
+    const data = await getAnalytics(payload);
+
+    if ("errors" in data) {
+      return data;
+    }
+
+    if (data.length === 0) {
+      return "";
+    }
+
+    const headers = ["Link", "Date", "Country", "Device", "Referrer"];
+    const rows = data.map((click: ClickType) => [
+      click.link?.label ?? "N/A",
+      format(new Date(click.ts), "LLL dd, y"),
+      click.country ?? "N/A",
+      click.device ?? "N/A",
+      click.ref ?? "N/A",
+    ]);
+
+    const csv = [
+      headers.join(","),
+      ...rows.map((row: string[]) => row.join(",")),
+    ].join("\n");
+
+    return csv;
   }
 );

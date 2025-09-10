@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -7,14 +6,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { DateRangePicker } from "@/components/ui/date-range-picker";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ExportButton } from "@/components/ui/export-button";
+import { FilterDropdown } from "@/components/ui/filter-dropdown";
 import {
   Table,
   TableBody,
@@ -25,14 +18,19 @@ import {
 } from "@/components/ui/table";
 import { getAnalytics } from "@/server/analytics";
 import { format } from "date-fns";
-import { ListFilter, FileDown } from "lucide-react";
 
-type ClickType = Awaited<ReturnType<typeof getAnalytics>>[number];
+export type ClickType = Awaited<ReturnType<typeof getAnalytics>>[number];
 
 export default async function AnalyticsPage({
   searchParams,
 }: {
-  searchParams: { from?: string; to?: string };
+  searchParams: {
+    from?: string;
+    to?: string;
+    country?: string;
+    device?: string;
+    ref?: string;
+  };
 }) {
   const data = await getAnalytics(searchParams);
 
@@ -49,31 +47,8 @@ export default async function AnalyticsPage({
             </div>
             <div className="flex items-center gap-2">
               <DateRangePicker />
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-7 gap-1">
-                    <ListFilter className="h-3.5 w-3.5" />
-                    <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                      Filter
-                    </span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Filter by</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuCheckboxItem checked>
-                    Country
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem>Device</DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem>Referrer</DropdownMenuCheckboxItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <Button size="sm" variant="outline" className="h-7 gap-1">
-                <FileDown className="h-3.5 w-3.5" />
-                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                  Export
-                </span>
-              </Button>
+              <FilterDropdown />
+              <ExportButton />
             </div>
           </div>
         </CardHeader>
