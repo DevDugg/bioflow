@@ -22,6 +22,13 @@
       "when": 1757353701786,
       "tag": "0002_complete_harrier",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1757525321236,
+      "tag": "0003_public_fenris",
+      "breakpoints": true
     }
   ]
 }

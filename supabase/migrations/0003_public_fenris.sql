@@ -1,0 +1,2 @@
+ALTER TABLE "owners" ENABLE ROW LEVEL SECURITY;--> statement-breakpoint
+CREATE POLICY "Allow all access for owners" ON "owners" AS PERMISSIVE FOR ALL TO "authenticated" USING (id = (select auth.uid())) WITH CHECK (id = (select auth.uid()));
