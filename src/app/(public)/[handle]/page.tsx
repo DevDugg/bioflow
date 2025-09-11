@@ -4,6 +4,7 @@ import { ArtistProfile } from "@/components/artist-profile";
 import { Suspense } from "react";
 import { ProfileSkeleton } from "@/components/ui/profile-skeleton";
 import type { Metadata } from "next";
+import { generateSeo } from "@/lib/seo";
 
 type Props = {
   params: { handle: string };
@@ -19,10 +20,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  return {
-    title: `${result.name} | Bioflow`,
-    description: result.description,
-  };
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+  const profileUrl = `${siteUrl}/${result.slug}`;
+
+  const { metadata } = generateSeo({
+    title: result.name,
+    description: result.description ?? undefined,
+    url: profileUrl,
+    image: result.image ?? undefined,
+    links: result.links,
+  });
+
+  return metadata;
 }
 
 export default async function ArtistPage({ params }: Props) {
@@ -48,22 +57,17 @@ export default async function ArtistPage({ params }: Props) {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
   const profileUrl = `${siteUrl}/${result.slug}`;
 
-  const jsonLd = {
-    "@context": "https://schema.org",
-    "@type": "MusicGroup",
-    name: result.name,
+  const { jsonLd } = generateSeo({
+    title: result.name,
+    description: result.description ?? undefined,
     url: profileUrl,
-    image: result.image,
-    description: result.description,
-    sameAs: result.links.map((link) => link.url),
-  };
+    image: result.image ?? undefined,
+    links: result.links,
+  });
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      {jsonLd}
       <style>{`
         body {
           background-color: ${result.theme?.background ?? "var(--background)"};
