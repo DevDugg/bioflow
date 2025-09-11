@@ -27,8 +27,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: result.name,
     description: result.description ?? undefined,
     url: profileUrl,
-    image: result.image ?? undefined,
     links: result.links,
+    handle: result.slug,
   });
 
   return metadata;
@@ -61,8 +61,8 @@ export default async function ArtistPage({ params }: Props) {
     title: result.name,
     description: result.description ?? undefined,
     url: profileUrl,
-    image: result.image ?? undefined,
     links: result.links,
+    handle: result.slug,
   });
 
   return (
