@@ -17,18 +17,35 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { getCurrentUser } from "@/server/auth";
-import { getArtistByOwnerId } from "@/server/artists";
+import { getArtistByOwnerId, artistExists } from "@/server/artists";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { TableSkeleton } from "@/components/ui/table-skeleton";
 
 export default async function AdminPage() {
-  const user = await getCurrentUser();
-  const artist = await getArtistByOwnerId(user.id);
+  const userResult = await getCurrentUser();
 
-  if (!artist) {
+  if ("errors" in userResult) {
+    redirect("/login");
+  }
+
+  const hasArtistResult = await artistExists(userResult.id);
+
+  if (typeof hasArtistResult === "object" && "errors" in hasArtistResult) {
     redirect("/onboarding");
   }
+
+  if (!hasArtistResult) {
+    redirect("/onboarding");
+  }
+
+  const artistResult = await getArtistByOwnerId(userResult.id);
+
+  if ("errors" in artistResult) {
+    redirect("/onboarding");
+  }
+
+  const artist = artistResult;
 
   return (
     <div className="p-4 md:p-8">

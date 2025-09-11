@@ -21,7 +21,7 @@ import { getAnalytics, getFilterValues } from "@/server/analytics";
 import { format } from "date-fns";
 import { Suspense } from "react";
 
-export type ClickType = Awaited<ReturnType<typeof getAnalytics>>[number];
+export type ClickType = Awaited<ReturnType<typeof getAnalytics>>;
 
 async function AnalyticsTable({
   searchParams,
@@ -34,7 +34,8 @@ async function AnalyticsTable({
     ref?: string;
   };
 }) {
-  const data = await getAnalytics(searchParams);
+  const { from, to, country, device, ref } = await searchParams;
+  const data = await getAnalytics({ from, to, country, device, ref });
   return (
     <Table>
       <TableHeader>
@@ -47,14 +48,14 @@ async function AnalyticsTable({
         </TableRow>
       </TableHeader>
       <TableBody>
-        {data.length === 0 ? (
+        {"errors" in data || data.length === 0 ? (
           <TableRow>
             <TableCell colSpan={5} className="text-center">
               No data to display.
             </TableCell>
           </TableRow>
         ) : (
-          data.map((click: ClickType) => (
+          data.map((click) => (
             <TableRow key={click.id}>
               <TableCell>{click.link?.label ?? "N/A"}</TableCell>
               <TableCell>{format(new Date(click.ts), "LLL dd, y")}</TableCell>
