@@ -4,9 +4,9 @@ import { type NextRequest } from "next/server";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { handle: string } }
+  { params }: { params: Promise<{ handle: string }> }
 ) {
-  const { handle } = params;
+  const { handle } = await params;
   const artist = await getArtistByHandle(handle);
 
   if ("errors" in artist) {

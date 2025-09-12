@@ -8,8 +8,11 @@ import { type NextRequest, NextResponse } from "next/server";
 import { UAParser } from "ua-parser-js";
 
 export const GET = withErrorHandler(
-  async (request: NextRequest, { params }: { params: { linkId: string } }) => {
-    const { linkId } = params;
+  async (
+    request: NextRequest,
+    { params }: { params: Promise<{ linkId: string }> }
+  ) => {
+    const { linkId } = await params;
 
     if (!linkId) {
       throw new NotFoundError();
