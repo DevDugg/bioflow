@@ -1,30 +1,37 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { type User } from "@supabase/supabase-js";
 
+const PROTECTED_ROUTES = ["/dashboard", "/onboarding"];
+const AUTH_ROUTES = ["/login", "/signup"];
+
+interface RouteRule {
+  routes: string[];
+  condition: (user: User | null) => boolean;
+  redirect: string;
+}
+
 export class Middleware {
-  private protectedRoutes = ["/dashboard", "/onboarding"];
-  private authRoutes = ["/login", "/signup"];
-  private publicRoutes = ["/", "/auth/confirm"];
+  private routeRules: RouteRule[] = [
+    {
+      routes: PROTECTED_ROUTES,
+      condition: (user) => !user,
+      redirect: "/login",
+    },
+    {
+      routes: AUTH_ROUTES,
+      condition: (user) => !!user,
+      redirect: "/dashboard",
+    },
+  ];
 
   async handle(request: NextRequest, user: User | null) {
     const { pathname } = request.nextUrl;
 
-    const isProtectedRoute = this.protectedRoutes.some((route) =>
-      pathname.startsWith(route),
-    );
-    const isAuthRoute = this.authRoutes.some((route) =>
-      pathname.startsWith(route),
-    );
-    const isPublicRoute = this.publicRoutes.some((route) =>
-      pathname.startsWith(route),
-    );
-
-    if (isProtectedRoute && !user) {
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
-
-    if (isAuthRoute && user) {
-      return NextResponse.redirect(new URL("/dashboard", request.url));
+    for (const rule of this.routeRules) {
+      const isMatch = rule.routes.some((route) => pathname.startsWith(route));
+      if (isMatch && rule.condition(user)) {
+        return NextResponse.redirect(new URL(rule.redirect, request.url));
+      }
     }
 
     return NextResponse.next();
