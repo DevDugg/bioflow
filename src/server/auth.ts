@@ -6,6 +6,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { withErrorHandler } from "@/server/errors/error-handler";
 import { UnauthorizedError } from "./errors/unauthorized-error";
+import { withFormErrorHandler } from "./errors/form-error-handler";
 
 export const getCurrentUser = withErrorHandler(async () => {
   const supabase = await createClient();
@@ -26,8 +27,8 @@ export const logout = withErrorHandler(async () => {
   return redirect("/login");
 });
 
-export const login = withErrorHandler(
-  async (prevState: any, formData: FormData): Promise<void> => {
+export const login = withFormErrorHandler(
+  async (prevState: any, formData: FormData) => {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
     const supabase = await createClient();
@@ -63,8 +64,8 @@ export const loginWithGoogle = withErrorHandler(async (): Promise<void> => {
   return redirect(data.url);
 });
 
-export const signup = withErrorHandler(
-  async (prevState: any, formData: FormData): Promise<void> => {
+export const signup = withFormErrorHandler(
+  async (prevState: any, formData: FormData) => {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
     const supabase = await createClient();

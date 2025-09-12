@@ -15,10 +15,12 @@ export default async function ThemesPage() {
   }
 
   const artist = await getArtistByOwnerId(user.id);
-  if ("errors" in artist) {
+  if (artist instanceof Response) {
     return (
       <div className="p-4 md:p-8">
-        <p className="text-destructive">{artist.errors[0].message}</p>
+        <p className="text-destructive">
+          An error occurred while fetching your data.
+        </p>
       </div>
     );
   }

@@ -41,7 +41,7 @@ export default async function AdminPage() {
 
   const artistResult = await getArtistByOwnerId(userResult.id);
 
-  if ("errors" in artistResult) {
+  if (artistResult instanceof Response) {
     redirect("/onboarding");
   }
 

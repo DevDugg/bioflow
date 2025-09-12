@@ -25,7 +25,8 @@ export default async function AdminLayout({
     redirect("/onboarding");
   }
 
-  const artist = hasArtist ? await getArtistByOwnerId(user.id) : null;
+  const artistResult = hasArtist ? await getArtistByOwnerId(user.id) : null;
+  const artist = artistResult instanceof Response ? null : artistResult;
 
   return (
     <div className="grid min-h-screen w-full lg:grid-cols-[280px_1fr]">
