@@ -26,13 +26,13 @@ export type ClickType = Awaited<ReturnType<typeof getAnalytics>>;
 async function AnalyticsTable({
   searchParams,
 }: {
-  searchParams: {
+  searchParams: Promise<{
     from?: string;
     to?: string;
     country?: string;
     device?: string;
     ref?: string;
-  };
+  }>;
 }) {
   const { from, to, country, device, ref } = await searchParams;
   const data = await getAnalytics({ from, to, country, device, ref });
@@ -55,7 +55,7 @@ async function AnalyticsTable({
             </TableCell>
           </TableRow>
         ) : (
-          data.map((click) => (
+          data.map((click: ClickType) => (
             <TableRow key={click.id}>
               <TableCell>{click.link?.label ?? "N/A"}</TableCell>
               <TableCell>{format(new Date(click.ts), "LLL dd, y")}</TableCell>
@@ -73,13 +73,13 @@ async function AnalyticsTable({
 export default async function AnalyticsPage({
   searchParams,
 }: {
-  searchParams: {
+  searchParams: Promise<{
     from?: string;
     to?: string;
     country?: string;
     device?: string;
     ref?: string;
-  };
+  }>;
 }) {
   const filterValues = await getFilterValues();
 

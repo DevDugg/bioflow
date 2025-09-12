@@ -116,6 +116,7 @@ export const onboardUser = withErrorHandler(
       await tx.insert(owners).values({
         id: user.id,
         name: data.name,
+        email: user.email!,
       });
       await tx.insert(artists).values({
         ownerId: user.id,

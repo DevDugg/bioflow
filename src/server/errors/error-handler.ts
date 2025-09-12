@@ -5,12 +5,11 @@ import { ModelError } from "./model-error";
 import { NotFoundError } from "./not-found-error";
 import { UnauthorizedError } from "./unauthorized-error";
 import { logger } from "@/lib/logger";
+import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 
 export function withErrorHandler<T extends (...args: any[]) => any>(fn: T) {
-  return async function (
-    ...args: Parameters<T>
-  ): Promise<ReturnType<T> | { errors: { message: string }[] }> {
+  return async function (...args: Parameters<T>) {
     try {
       return await fn(...args);
     } catch (error) {
@@ -52,9 +51,12 @@ export function withErrorHandler<T extends (...args: any[]) => any>(fn: T) {
         errorMessage
       );
 
-      return {
-        errors: [{ message: errorMessage }],
-      };
+      return NextResponse.json(
+        {
+          errors: [{ message: errorMessage }],
+        },
+        { status: statusCode }
+      );
     }
   };
 }

@@ -9,6 +9,7 @@ export const owners = pgTable(
   {
     id: uuid("id").primaryKey(),
     name: text("name"),
+    email: text("email").notNull(),
     ...timestamps,
   },
   (table) => [
