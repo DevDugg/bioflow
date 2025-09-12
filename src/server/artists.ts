@@ -13,7 +13,6 @@ import { ModelError } from "./errors/model-error";
 import { createClient } from "../../supabase/server";
 import { owners } from "@/db/schemas/owners";
 import { redirect } from "next/navigation";
-import { withFormErrorHandler } from "./errors/form-error-handler";
 
 const GetArtistByHandlePayload = z.string().min(1, "Handle is required");
 
@@ -68,8 +67,8 @@ export const artistExists = withErrorHandler(async (userId: string) => {
   return result.length > 0;
 });
 
-export const onboardUser = withFormErrorHandler(
-  async (prevState: any, formData: FormData) => {
+export const onboardUser = async (prevState: any, formData: FormData) => {
+  try {
     const data = {
       name: formData.get("name") as string,
       slug: formData.get("slug") as string,
@@ -127,10 +126,19 @@ export const onboardUser = withFormErrorHandler(
         image: newImageUrl,
       });
     });
-
-    return redirect("/dashboard");
+  } catch (error) {
+    if (error instanceof ModelError) {
+      return {
+        errors: [{ message: error.message }],
+      };
+    }
+    return {
+      errors: [{ message: "An unexpected error occurred." }],
+    };
   }
-);
+
+  return redirect("/dashboard");
+};
 
 const UpdateArtistPayload = z.object({
   id: z.uuid(),
