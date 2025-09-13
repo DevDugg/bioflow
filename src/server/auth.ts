@@ -6,6 +6,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { withErrorHandler } from "@/server/errors/error-handler";
 import { UnauthorizedError } from "./errors/unauthorized-error";
+import { withFormActionErrorHandler } from "./errors/form-action-error-handler";
 
 export const getCurrentUser = withErrorHandler(async () => {
   const supabase = await createClient();
@@ -20,75 +21,75 @@ export const getCurrentUser = withErrorHandler(async () => {
   return user;
 });
 
-export const logout = withErrorHandler(async () => {
+export const logout = withFormActionErrorHandler(async () => {
   const supabase = await createClient();
   await supabase.auth.signOut();
   return redirect("/login");
 });
 
-export const login = async (prevState: any, formData: FormData) => {
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
-  const supabase = await createClient();
+export const login = withFormActionErrorHandler(
+  async (prevState: any, formData: FormData) => {
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    const supabase = await createClient();
 
-  const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-  if (error) {
-    return {
-      errors: [{ message: error.message }],
-    };
+    if (error) {
+      throw new ModelError(error.message);
+    }
+
+    return redirect("/dashboard");
   }
+);
 
-  return redirect("/dashboard");
-};
+export const loginWithGoogle = withFormActionErrorHandler(
+  async (): Promise<void> => {
+    const supabase = await createClient();
+    const origin = (await headers()).get("origin");
 
-export const loginWithGoogle = withErrorHandler(async (): Promise<void> => {
-  const supabase = await createClient();
-  const origin = (await headers()).get("origin");
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${origin}/auth/callback`,
+      },
+    });
 
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo: `${origin}/auth/callback`,
-    },
-  });
+    if (error) {
+      throw new ModelError(error.message);
+    }
 
-  if (error) {
-    throw new ModelError(error.message);
+    return redirect(data.url);
   }
+);
 
-  return redirect(data.url);
-});
+export const signup = withFormActionErrorHandler(
+  async (prevState: any, formData: FormData) => {
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+    const confirmPassword = formData.get("confirmPassword") as string;
 
-export const signup = async (prevState: any, formData: FormData) => {
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
-  const confirmPassword = formData.get("confirmPassword") as string;
+    if (password !== confirmPassword) {
+      throw new ModelError("Passwords do not match");
+    }
 
-  if (password !== confirmPassword) {
-    return {
-      errors: [{ message: "Passwords do not match" }],
-    };
+    const supabase = await createClient();
+
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${(await headers()).get("origin")}/auth/confirm`,
+      },
+    });
+
+    if (error) {
+      throw new ModelError(error.message);
+    }
+
+    return redirect("/confirm-email");
   }
-
-  const supabase = await createClient();
-
-  const { error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      emailRedirectTo: `${(await headers()).get("origin")}/auth/confirm`,
-    },
-  });
-
-  if (error) {
-    return {
-      errors: [{ message: error.message }],
-    };
-  }
-
-  return redirect("/confirm-email");
-};
+);

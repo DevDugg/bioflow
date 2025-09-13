@@ -29,6 +29,13 @@
       "when": 1757525321236,
       "tag": "0003_public_fenris",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1757788652009,
+      "tag": "0004_gigantic_caretaker",
+      "breakpoints": true
     }
   ]
 }

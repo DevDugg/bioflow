@@ -7,7 +7,7 @@ import { authenticatedRole, authUid } from "drizzle-orm/supabase";
 export const owners = pgTable(
   "owners",
   {
-    id: uuid("id").primaryKey(),
+    id: uuid("id").defaultRandom().primaryKey(),
     name: text("name"),
     email: text("email").notNull(),
     ...timestamps,
