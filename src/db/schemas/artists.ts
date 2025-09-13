@@ -55,14 +55,13 @@ export const artists = pgTable(
       for: "update",
       to: authenticatedRole,
       using: sql`${authUid} = owner_id`,
-      withCheck: sql`${authUid} = owner_id`,
     }),
     pgPolicy("Allow owners to delete their own artist", {
       for: "delete",
       to: authenticatedRole,
       using: sql`${authUid} = owner_id`,
     }),
-  ],
+  ]
 );
 
 export const artistsRelations = relations(artists, ({ many, one }) => ({

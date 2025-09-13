@@ -6,6 +6,7 @@ import { withErrorHandler } from "@/server/errors/error-handler";
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
+import { withZod } from "@/server/errors/with-zod";
 import { BadRequestError } from "./errors/bad-request-error";
 
 const CreateLinkPayload = z.object({
@@ -17,20 +18,14 @@ const CreateLinkPayload = z.object({
 });
 
 export const createLink = withErrorHandler(
-  async (payload: z.infer<typeof CreateLinkPayload>) => {
-    const validation = CreateLinkPayload.safeParse(payload);
-    if (!validation.success) {
-      throw new BadRequestError(validation.error.message);
-    }
-
-    // TODO: Recalculate order
-    const newLink = await db.insert(links).values(validation.data).returning();
+  withZod(CreateLinkPayload, async (data) => {
+    const newLink = await db.insert(links).values(data).returning();
 
     revalidatePath("/admin");
     revalidatePath(`/${(await getArtistFromLink(newLink[0].id))?.slug}`);
 
     return newLink[0];
-  },
+  })
 );
 
 const UpdateLinkPayload = z.object({
@@ -59,14 +54,14 @@ export const updateLink = withErrorHandler(
     revalidatePath(`/${(await getArtistFromLink(id))?.slug}`);
 
     return updatedLink[0];
-  },
+  }
 );
 
 const UpdateLinkOrderPayload = z.array(
   z.object({
     id: z.uuid(),
     order: z.number().int(),
-  }),
+  })
 );
 
 export const updateLinkOrder = withErrorHandler(
@@ -97,7 +92,7 @@ export const updateLinkOrder = withErrorHandler(
     }
 
     return { success: true };
-  },
+  }
 );
 
 export const deleteLink = withErrorHandler(async (linkId: string) => {

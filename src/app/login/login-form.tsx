@@ -3,11 +3,10 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ChromeIcon } from "lucide-react";
-import { login, loginWithGoogle } from "@/server/auth";
-import { useActionState, useEffect } from "react";
+import { login } from "@/server/auth";
+import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import { toast } from "sonner";
+import { useFormFeedback } from "@/hooks/use-form-feedback";
 
 const initialState = {
   errors: [],
@@ -25,11 +24,7 @@ function SubmitButton() {
 export function LoginForm() {
   const [state, formAction] = useActionState(login, initialState);
 
-  useEffect(() => {
-    if (state?.errors?.length > 0) {
-      toast.error(state.errors[0].message);
-    }
-  }, [state]);
+  useFormFeedback(state);
 
   return (
     <>
