@@ -66,6 +66,14 @@ export const loginWithGoogle = withErrorHandler(async (): Promise<void> => {
 export const signup = async (prevState: any, formData: FormData) => {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
+  const confirmPassword = formData.get("confirmPassword") as string;
+
+  if (password !== confirmPassword) {
+    return {
+      errors: [{ message: "Passwords do not match" }],
+    };
+  }
+
   const supabase = await createClient();
 
   const { error } = await supabase.auth.signUp({

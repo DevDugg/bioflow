@@ -46,6 +46,15 @@ export function SignupForm() {
         <Label htmlFor="password">Password</Label>
         <Input id="password" type="password" name="password" required />
       </div>
+      <div className="space-y-2">
+        <Label htmlFor="confirmPassword">Confirm Password</Label>
+        <Input
+          id="confirmPassword"
+          type="password"
+          name="confirmPassword"
+          required
+        />
+      </div>
       <SubmitButton />
     </form>
   );
