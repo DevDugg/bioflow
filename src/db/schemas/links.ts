@@ -10,6 +10,9 @@ import { relations, sql } from "drizzle-orm";
 import { meta, timestamps } from "./utils";
 import { artists } from "./artists";
 import { authenticatedRole, authUid } from "drizzle-orm/supabase";
+import { pgEnum } from "drizzle-orm/pg-core";
+
+export const linkTypeEnum = pgEnum("link_type", ["link", "social"]);
 
 export const links = pgTable(
   "links",
@@ -23,6 +26,7 @@ export const links = pgTable(
     order: integer("order").notNull().default(0),
     icon: text("icon"),
     badge: text("badge"),
+    linkType: linkTypeEnum("link_type").notNull().default("link"),
     ...timestamps,
   },
   (table) => [
@@ -47,7 +51,7 @@ export const links = pgTable(
       to: authenticatedRole,
       using: sql`exists (select 1 from artists where artists.id = ${table.artistId} and artists.owner_id = ${authUid})`,
     }),
-  ],
+  ]
 );
 
 export const linksRelations = relations(links, ({ one }) => ({

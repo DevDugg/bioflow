@@ -8,6 +8,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 import { withZod } from "@/server/errors/with-zod";
 import { BadRequestError } from "./errors/bad-request-error";
+import { linkTypeEnum } from "@/db/schemas";
 
 const CreateLinkPayload = z.object({
   artistId: z.uuid(),
@@ -15,6 +16,7 @@ const CreateLinkPayload = z.object({
   url: z.url("Invalid URL format"),
   icon: z.string().optional(),
   badge: z.string().optional(),
+  linkType: z.enum(linkTypeEnum.enumValues).optional().default("link"),
 });
 
 export const createLink = withErrorHandler(
@@ -34,6 +36,7 @@ const UpdateLinkPayload = z.object({
   url: z.url("Invalid URL format"),
   icon: z.string().optional(),
   badge: z.string().optional(),
+  linkType: z.enum(linkTypeEnum.enumValues).optional().default("link"),
 });
 
 export const updateLink = withErrorHandler(

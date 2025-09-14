@@ -13,9 +13,17 @@ import {
   Mic2,
   Music,
   Link as LinkIcon,
+  Twitch,
+  Github,
+  Facebook,
+  Linkedin,
+  Podcast,
+  DiscAlbum,
+  Ticket,
 } from "lucide-react";
 import type { getArtistByHandle } from "@/server/artists";
 import { Badge } from "@/components/ui/badge";
+import { partition } from "lodash";
 
 type Artist = Awaited<ReturnType<typeof getArtistByHandle>>;
 type LinkType = Artist extends { links: Array<any> }
@@ -30,6 +38,13 @@ const iconMap: Record<string, LucideIcon> = {
   mic2: Mic2,
   music: Music,
   link: LinkIcon,
+  twitch: Twitch,
+  github: Github,
+  facebook: Facebook,
+  linkedin: Linkedin,
+  podcast: Podcast,
+  album: DiscAlbum,
+  ticket: Ticket,
 };
 
 const FADE_UP_ANIMATION_VARIANTS = {
@@ -41,6 +56,11 @@ export function ArtistProfile({ artist }: { artist: Artist }) {
   if (!artist || "errors" in artist) {
     return null;
   }
+
+  const [socialLinks, standardLinks] = partition(
+    artist.links,
+    (link: LinkType) => link.linkType === "social"
+  );
 
   const themeStyle = {
     "--background": artist.theme?.background,
@@ -89,6 +109,27 @@ export function ArtistProfile({ artist }: { artist: Artist }) {
         )}
       </motion.section>
 
+      {socialLinks.length > 0 && (
+        <motion.section
+          variants={FADE_UP_ANIMATION_VARIANTS}
+          className="mt-8 flex justify-center space-x-4"
+        >
+          {socialLinks.map((link: LinkType) => {
+            const Icon = getIconForLink(link.url);
+            return (
+              <Link
+                key={link.id}
+                href={`/r/${link.id}`}
+                target="_blank"
+                rel="noopener"
+              >
+                <Icon className="h-8 w-8 text-foreground/80 transition-colors hover:text-foreground" />
+              </Link>
+            );
+          })}
+        </motion.section>
+      )}
+
       <motion.section
         variants={{
           hidden: {},
@@ -100,7 +141,7 @@ export function ArtistProfile({ artist }: { artist: Artist }) {
         }}
         className="mt-10 flex w-full flex-col space-y-4"
       >
-        {artist.links.map((link: LinkType) => {
+        {standardLinks.map((link: LinkType) => {
           const Icon = link.icon ? iconMap[link.icon] ?? LinkIcon : LinkIcon;
           return (
             <motion.div key={link.id} variants={FADE_UP_ANIMATION_VARIANTS}>
@@ -130,4 +171,21 @@ export function ArtistProfile({ artist }: { artist: Artist }) {
       </motion.section>
     </motion.div>
   );
+}
+
+function getIconForLink(url: string): LucideIcon {
+  if (url.includes("twitter.com") || url.includes("x.com")) return Twitter;
+  if (url.includes("instagram.com")) return Instagram;
+  if (url.includes("youtube.com")) return Youtube;
+  if (url.includes("twitch.tv")) return Twitch;
+  if (url.includes("github.com")) return Github;
+  if (url.includes("facebook.com")) return Facebook;
+  if (url.includes("linkedin.com")) return Linkedin;
+  if (url.includes("spotify.com")) return Music;
+  if (url.includes("soundcloud.com")) return Music;
+  if (url.includes("bandcamp.com")) return DiscAlbum;
+  if (url.includes("apple.com")) return Music;
+  if (url.includes("ticketmaster.com")) return Ticket;
+  if (url.includes("eventbrite.com")) return Ticket;
+  return Globe;
 }

@@ -17,14 +17,48 @@ import { Input } from "@/components/ui/input";
 import { useTransition } from "react";
 import { createLink, updateLink } from "@/server/links";
 import { toast } from "sonner";
+import { linkTypeEnum } from "@/db/schemas";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+
 // import { IconPicker } from "./ui/icon-picker";
 
-const formSchema = z.object({
-  label: z.string().min(2, "Label must be at least 2 characters."),
-  url: z.url("Please enter a valid URL."),
-  // icon: z.string().optional(),
-  badge: z.string().optional(),
-});
+function getLabelForSocialLink(url: string): string {
+  if (url.includes("twitter.com") || url.includes("x.com")) return "Twitter";
+  if (url.includes("instagram.com")) return "Instagram";
+  if (url.includes("youtube.com")) return "YouTube";
+  if (url.includes("twitch.tv")) return "Twitch";
+  if (url.includes("github.com")) return "GitHub";
+  if (url.includes("facebook.com")) return "Facebook";
+  if (url.includes("linkedin.com")) return "LinkedIn";
+  if (url.includes("spotify.com")) return "Spotify";
+  if (url.includes("soundcloud.com")) return "SoundCloud";
+  if (url.includes("bandcamp.com")) return "Bandcamp";
+  if (url.includes("apple.com")) return "Apple Music";
+  if (url.includes("ticketmaster.com")) return "Ticketmaster";
+  if (url.includes("eventbrite.com")) return "Eventbrite";
+  return "Website";
+}
+
+const formSchema = z
+  .object({
+    label: z.string().optional(),
+    url: z.url("Please enter a valid URL."),
+    // icon: z.string().optional(),
+    badge: z.string().optional(),
+    linkType: z.enum(linkTypeEnum.enumValues),
+  })
+  .refine(
+    (data) => {
+      if (data.linkType === "link") {
+        return !!data.label && data.label.length >= 2;
+      }
+      return true;
+    },
+    {
+      message: "Label must be at least 2 characters.",
+      path: ["label"],
+    }
+  );
 
 type LinkFormValues = z.infer<typeof formSchema>;
 
@@ -44,13 +78,29 @@ export function LinkForm({ artistId, initialData }: LinkFormProps) {
       url: initialData?.url ?? "",
       // icon: initialData?.icon ?? "",
       badge: initialData?.badge ?? "",
+      linkType: initialData?.linkType ?? "link",
     },
   });
 
   function onSubmit(values: LinkFormValues) {
+    // For TypeScript
+    const dataToSend = { ...values };
+    if (dataToSend.linkType === "social") {
+      dataToSend.label = getLabelForSocialLink(dataToSend.url);
+    }
+
+    if (!dataToSend.label) {
+      form.setError("label", { message: "Label is required." });
+      return;
+    }
+
+    // For TypeScript
+    const finalLabel = dataToSend.label;
+
     startTransition(async () => {
+      const payload = { ...dataToSend, label: finalLabel };
       if (isEditMode) {
-        const result = await updateLink({ id: initialData.id, ...values });
+        const result = await updateLink({ id: initialData.id, ...payload });
         if ("errors" in result) {
           toast.error("Error updating link", {
             description: result.errors.map((e: any) => e.message).join(", "),
@@ -59,7 +109,7 @@ export function LinkForm({ artistId, initialData }: LinkFormProps) {
           toast.success("Link updated successfully.");
         }
       } else {
-        const result = await createLink({ artistId, ...values });
+        const result = await createLink({ artistId, ...payload });
         if ("errors" in result) {
           toast.error("Error creating link", {
             description: result.errors.map((e: any) => e.message).join(", "),
@@ -73,25 +123,59 @@ export function LinkForm({ artistId, initialData }: LinkFormProps) {
     });
   }
 
+  const linkType = form.watch("linkType");
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <FormField
           control={form.control}
-          name="label"
+          name="linkType"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Label</FormLabel>
+            <FormItem className="space-y-3">
+              <FormLabel>Link Type</FormLabel>
               <FormControl>
-                <Input placeholder="My latest single" {...field} />
+                <RadioGroup
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                  className="flex space-x-4"
+                >
+                  <FormItem className="flex items-center space-x-2">
+                    <FormControl>
+                      <RadioGroupItem value="link" />
+                    </FormControl>
+                    <FormLabel className="font-normal">Standard Link</FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-2">
+                    <FormControl>
+                      <RadioGroupItem value="social" />
+                    </FormControl>
+                    <FormLabel className="font-normal">Social Icon</FormLabel>
+                  </FormItem>
+                </RadioGroup>
               </FormControl>
-              <FormDescription>
-                The text that will be displayed on the button.
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
+        {linkType === "link" && (
+          <FormField
+            control={form.control}
+            name="label"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Label</FormLabel>
+                <FormControl>
+                  <Input placeholder="My latest single" {...field} />
+                </FormControl>
+                <FormDescription>
+                  The text that will be displayed on the button.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         <FormField
           control={form.control}
           name="url"
