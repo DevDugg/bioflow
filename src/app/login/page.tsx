@@ -8,7 +8,19 @@ import {
 import { LoginForm } from "./login-form";
 import Link from "next/link";
 
-export default function LoginPage() {
+function ErrorMessage({ message }: { message: string }) {
+  return (
+    <div className="mb-4 rounded-md border border-destructive bg-destructive/10 p-4 text-sm text-destructive">
+      {message}
+    </div>
+  );
+}
+
+export default function LoginPage({
+  searchParams,
+}: {
+  searchParams: { message: string };
+}) {
   return (
     <div className="flex h-screen items-center justify-center">
       <Card className="w-full max-w-sm">
@@ -19,6 +31,9 @@ export default function LoginPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          {searchParams.message && (
+            <ErrorMessage message={searchParams.message} />
+          )}
           <LoginForm />
           <p className="mt-4 text-center text-sm text-muted-foreground">
             Don't have an account?{" "}
