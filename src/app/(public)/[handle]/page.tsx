@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { handle } = await params;
   const result = await getArtistByHandle(handle);
 
-  if ("errors" in result) {
+  if (result instanceof Response) {
     return {
       title: "Not Found",
     };
@@ -38,20 +38,8 @@ export default async function ArtistPage({ params }: Props) {
   const { handle } = await params;
   const result = await getArtistByHandle(handle);
 
-  if ("errors" in result) {
-    if (result.errors.some((e: any) => e?.message === "Not Found")) {
-      notFound();
-    }
-    return (
-      <main className="flex h-screen items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold">Something went wrong</h1>
-          <p className="text-muted-foreground">
-            {result.errors.map((e: any) => e?.message).join(", ")}
-          </p>
-        </div>
-      </main>
-    );
+  if (result instanceof Response) {
+    return notFound();
   }
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";

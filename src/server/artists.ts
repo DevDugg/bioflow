@@ -20,7 +20,7 @@ const GetArtistByHandlePayload = z.string().min(1, "Handle is required");
 export const getArtistByHandle = withErrorHandler(async (handle: string) => {
   const validation = GetArtistByHandlePayload.safeParse(handle);
   if (!validation.success) {
-    throw new BadRequestError(validation.error.message);
+    throw new NotFoundError();
   }
   const validatedHandle = validation.data;
 
@@ -189,6 +189,10 @@ export const updateArtist = withErrorHandler(async (payload: FormData) => {
     .where(eq(artists.id, id))
     .returning();
 
+  if (!updatedArtist || updatedArtist.length === 0) {
+    throw new ModelError("Failed to update artist");
+  }
+
   revalidatePath("/admin/profile");
   revalidatePath(`/${updatedArtist[0].slug}`);
 
@@ -224,6 +228,10 @@ export const updateArtistTheme = withErrorHandler(
       .set({ theme })
       .where(eq(artists.id, id))
       .returning();
+
+    if (!updatedArtist || updatedArtist.length === 0) {
+      throw new ModelError("Failed to update artist theme");
+    }
 
     revalidatePath("/admin/profile");
     revalidatePath(`/${updatedArtist[0].slug}`);

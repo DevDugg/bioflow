@@ -5,6 +5,7 @@ import { ModelError } from "./model-error";
 import { NotFoundError } from "./not-found-error";
 import { UnauthorizedError } from "./unauthorized-error";
 import { logger } from "@/lib/logger";
+import { headers } from "next/headers";
 
 type FormState = {
   errors: {
@@ -25,7 +26,8 @@ export function withFormActionErrorHandler<
       if ((error as any)?.digest?.startsWith("NEXT_REDIRECT")) {
         throw error;
       }
-      const log = logger.child({});
+      const requestId = (await headers()).get("x-vercel-id");
+      const log = logger.child({ requestId });
 
       let errorMessage = "An unexpected error occurred.";
 

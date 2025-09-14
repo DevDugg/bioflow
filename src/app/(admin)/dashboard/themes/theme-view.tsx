@@ -18,10 +18,10 @@ interface ThemeViewProps {
 
 export function ThemeView({ artist }: ThemeViewProps) {
   const [theme, setTheme] = useState(
-    "errors" in artist ? {} : artist.theme ?? {}
+    artist instanceof Response ? {} : artist.theme ?? {}
   );
 
-  if ("errors" in artist) {
+  if (artist instanceof Response) {
     return (
       <div className="flex h-full items-center justify-center p-4 md:p-8">
         <p className="text-muted-foreground">
