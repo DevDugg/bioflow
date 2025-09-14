@@ -17,11 +17,12 @@ import { Input } from "@/components/ui/input";
 import { useTransition } from "react";
 import { createLink, updateLink } from "@/server/links";
 import { toast } from "sonner";
+// import { IconPicker } from "./ui/icon-picker";
 
 const formSchema = z.object({
   label: z.string().min(2, "Label must be at least 2 characters."),
   url: z.url("Please enter a valid URL."),
-  icon: z.string().optional(),
+  // icon: z.string().optional(),
   badge: z.string().optional(),
 });
 
@@ -41,7 +42,7 @@ export function LinkForm({ artistId, initialData }: LinkFormProps) {
     defaultValues: {
       label: initialData?.label ?? "",
       url: initialData?.url ?? "",
-      icon: initialData?.icon ?? "",
+      // icon: initialData?.icon ?? "",
       badge: initialData?.badge ?? "",
     },
   });
@@ -105,31 +106,26 @@ export function LinkForm({ artistId, initialData }: LinkFormProps) {
             </FormItem>
           )}
         />
-        <FormField
+        {/* <FormField
           control={form.control}
           name="icon"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Icon (Optional)</FormLabel>
               <FormControl>
-                <Input placeholder="music" {...field} />
+                <IconPicker
+                  value={field.value}
+                  onChange={field.onChange}
+                  defaultValue={field.value}
+                />
               </FormControl>
               <FormDescription>
-                A{" "}
-                <a
-                  href="https://lucide.dev/icons/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="underline"
-                >
-                  Lucide icon
-                </a>{" "}
-                name.
+                Choose an icon to display next to your link.
               </FormDescription>
               <FormMessage />
             </FormItem>
           )}
-        />
+        /> */}
         <FormField
           control={form.control}
           name="badge"
