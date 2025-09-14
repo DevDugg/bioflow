@@ -1,0 +1,1 @@
+ALTER TYPE "public"."link_type" ADD VALUE 'video';

@@ -12,7 +12,7 @@ import { artists } from "./artists";
 import { authenticatedRole, authUid } from "drizzle-orm/supabase";
 import { pgEnum } from "drizzle-orm/pg-core";
 
-export const linkTypeEnum = pgEnum("link_type", ["link", "social"]);
+export const linkTypeEnum = pgEnum("link_type", ["link", "social", "video"]);
 
 export const links = pgTable(
   "links",
