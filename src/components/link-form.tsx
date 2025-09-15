@@ -83,10 +83,11 @@ export function LinkForm({ artistId, initialData }: LinkFormProps) {
   });
 
   function onSubmit(values: LinkFormValues) {
-    // For TypeScript
     const dataToSend = { ...values };
     if (dataToSend.linkType === "social") {
       dataToSend.label = getLabelForSocialLink(dataToSend.url);
+    } else if (dataToSend.linkType === "video") {
+      dataToSend.label = "Embedded Video";
     }
 
     if (!dataToSend.label) {
@@ -151,6 +152,12 @@ export function LinkForm({ artistId, initialData }: LinkFormProps) {
                       <RadioGroupItem value="social" />
                     </FormControl>
                     <FormLabel className="font-normal">Social Icon</FormLabel>
+                  </FormItem>
+                  <FormItem className="flex items-center space-x-2">
+                    <FormControl>
+                      <RadioGroupItem value="video" />
+                    </FormControl>
+                    <FormLabel className="font-normal">Video Embed</FormLabel>
                   </FormItem>
                 </RadioGroup>
               </FormControl>

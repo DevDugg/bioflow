@@ -45,7 +45,7 @@ export function Sidebar({ artist }: { artist: Artist }) {
     },
   ];
 
-  if ("errors" in artist) {
+  if (!artist || "errors" in artist) {
     return (
       <div className="p-4 text-sm text-muted-foreground">
         Could not load artist data.

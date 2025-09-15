@@ -57,9 +57,14 @@ export function ArtistProfile({ artist }: { artist: Artist }) {
     return null;
   }
 
-  const [socialLinks, standardLinks] = partition(
+  const [socialLinks, nonSocialLinks] = partition(
     artist.links,
     (link: LinkType) => link.linkType === "social"
+  );
+
+  const [videoLinks, standardLinks] = partition(
+    nonSocialLinks,
+    (link: LinkType) => link.linkType === "video"
   );
 
   const themeStyle = {
@@ -130,6 +135,17 @@ export function ArtistProfile({ artist }: { artist: Artist }) {
         </motion.section>
       )}
 
+      {videoLinks.length > 0 && (
+        <motion.section
+          variants={FADE_UP_ANIMATION_VARIANTS}
+          className="mt-8 flex flex-col items-center space-y-4"
+        >
+          {videoLinks.map((link: LinkType) => (
+            <YoutubeEmbed key={link.id} url={link.url} />
+          ))}
+        </motion.section>
+      )}
+
       <motion.section
         variants={{
           hidden: {},
@@ -188,4 +204,46 @@ function getIconForLink(url: string): LucideIcon {
   if (url.includes("ticketmaster.com")) return Ticket;
   if (url.includes("eventbrite.com")) return Ticket;
   return Globe;
+}
+
+function YoutubeEmbed({ url }: { url: string }) {
+  const videoId = getYouTubeVideoId(url);
+
+  if (!videoId) {
+    return (
+      <div className="w-full text-center text-sm text-red-500">
+        Invalid YouTube URL
+      </div>
+    );
+  }
+
+  return (
+    <div className="aspect-video w-full overflow-hidden rounded-lg shadow-lg">
+      <iframe
+        width="100%"
+        height="100%"
+        src={`https://www.youtube.com/embed/${videoId}`}
+        title="YouTube video player"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+      ></iframe>
+    </div>
+  );
+}
+
+function getYouTubeVideoId(url: string): string | null {
+  const urlObject = new URL(url);
+  const hostname = urlObject.hostname;
+  if (hostname === "youtu.be") {
+    return urlObject.pathname.slice(1);
+  }
+  if (hostname === "www.youtube.com" || hostname === "youtube.com") {
+    if (urlObject.pathname === "/watch") {
+      return urlObject.searchParams.get("v");
+    }
+    if (urlObject.pathname.startsWith("/embed/")) {
+      return urlObject.pathname.split("/")[2];
+    }
+  }
+  return null;
 }

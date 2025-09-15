@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { handle } = await params;
   const result = await getArtistByHandle(handle);
 
-  if (result instanceof Response) {
+  if (!result || result instanceof Response) {
     return {
       title: "Not Found",
     };
