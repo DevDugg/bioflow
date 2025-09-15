@@ -50,6 +50,13 @@
       "when": 1757870598606,
       "tag": "0006_pink_stark_industries",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1757960400946,
+      "tag": "0007_curved_stark_industries",
+      "breakpoints": true
     }
   ]
 }
