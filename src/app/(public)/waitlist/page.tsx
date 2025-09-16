@@ -9,9 +9,11 @@ import { WaitlistForm } from "@/components/waitlist-form";
 
 export default function WaitlistPage() {
   return (
-    <div className="flex h-screen flex-col items-center justify-center space-y-6">
-      <div className="text-center">
-        <h1 className="text-5xl font-bold tracking-tighter">Bioflow</h1>
+    <div className="flex h-screen flex-col items-center justify-center space-y-6 p-4">
+      <div className="space-y-2 text-center">
+        <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl">
+          Bioflow
+        </h1>
         <p className="mx-auto max-w-[600px] text-muted-foreground md:text-xl">
           The ultimate link-in-bio for musicians and artists. Sign up to get
           early access and be the first to know when we launch.
