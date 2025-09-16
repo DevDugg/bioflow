@@ -79,13 +79,6 @@ async function seed() {
     },
     {
       artistId: artist.id,
-      label: "Watch on YouTube",
-      url: "#",
-      icon: "youtube",
-      order: 5,
-    },
-    {
-      artistId: artist.id,
       label: "Upcoming Tour Dates",
       url: "#",
       icon: "mic2",

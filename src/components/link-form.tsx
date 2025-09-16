@@ -25,7 +25,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 function getLabelForSocialLink(url: string): string {
   if (url.includes("twitter.com") || url.includes("x.com")) return "Twitter";
   if (url.includes("instagram.com")) return "Instagram";
-  if (url.includes("youtube.com")) return "YouTube";
   if (url.includes("twitch.tv")) return "Twitch";
   if (url.includes("github.com")) return "GitHub";
   if (url.includes("facebook.com")) return "Facebook";
@@ -86,8 +85,6 @@ export function LinkForm({ artistId, initialData }: LinkFormProps) {
     const dataToSend = { ...values };
     if (dataToSend.linkType === "social") {
       dataToSend.label = getLabelForSocialLink(dataToSend.url);
-    } else if (dataToSend.linkType === "video") {
-      dataToSend.label = "Embedded Video";
     }
 
     if (!dataToSend.label) {
@@ -152,12 +149,6 @@ export function LinkForm({ artistId, initialData }: LinkFormProps) {
                       <RadioGroupItem value="social" />
                     </FormControl>
                     <FormLabel className="font-normal">Social Icon</FormLabel>
-                  </FormItem>
-                  <FormItem className="flex items-center space-x-2">
-                    <FormControl>
-                      <RadioGroupItem value="video" />
-                    </FormControl>
-                    <FormLabel className="font-normal">Video Embed</FormLabel>
                   </FormItem>
                 </RadioGroup>
               </FormControl>
