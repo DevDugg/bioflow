@@ -194,7 +194,6 @@ export const updateArtist = withErrorHandler(async (payload: FormData) => {
   }
 
   revalidatePath("/admin/profile");
-  revalidatePath(`/${updatedArtist[0].slug}`);
   revalidatePath(`/subdomain/${updatedArtist[0].slug}`);
 
   return updatedArtist[0];
@@ -235,7 +234,6 @@ export const updateArtistTheme = withErrorHandler(
     }
 
     revalidatePath("/admin/profile");
-    revalidatePath(`/${updatedArtist[0].slug}`);
     revalidatePath(`/subdomain/${updatedArtist[0].slug}`);
 
     return updatedArtist[0];
