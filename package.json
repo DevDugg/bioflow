@@ -8,6 +8,8 @@
     "start": "next start",
     "lint": "biome check",
     "format": "biome format --write",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push"
   },
