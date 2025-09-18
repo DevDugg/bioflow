@@ -1,7 +1,20 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  async rewrites() {
+    return [
+      {
+        source: "/:path*",
+        destination: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "(?<subdomain>.*)\\.bioflow\\.app",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
