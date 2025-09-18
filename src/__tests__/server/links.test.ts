@@ -38,6 +38,8 @@ mock.module("@/server/errors/bad-request-error", () => ({
   },
 }));
 
+mock.module("server-only", () => ({}));
+
 const { createLink, updateLink, deleteLink } = await import("@/server/links");
 
 describe("Server Actions - Links", () => {
