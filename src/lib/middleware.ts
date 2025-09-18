@@ -36,6 +36,51 @@ export class Middleware {
     return null;
   }
 
+  private isValidSubdomain(subdomain: string): boolean {
+    const reservedSubdomains = [
+      "www",
+      "api",
+      "admin",
+      "app",
+      "mail",
+      "ftp",
+      "blog",
+      "shop",
+      "store",
+      "support",
+      "help",
+      "docs",
+      "status",
+      "cdn",
+      "assets",
+      "static",
+      "media",
+      "images",
+      "files",
+      "download",
+      "upload",
+      "dev",
+      "staging",
+      "test",
+      "demo",
+      "beta",
+      "alpha",
+      "preview",
+      "sandbox",
+    ];
+
+    if (reservedSubdomains.includes(subdomain.toLowerCase())) {
+      return false;
+    }
+
+    const subdomainRegex = /^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$/;
+    return (
+      subdomainRegex.test(subdomain) &&
+      subdomain.length >= 2 &&
+      subdomain.length <= 63
+    );
+  }
+
   private isSubdomainRequest(hostname: string): boolean {
     return this.extractSubdomain(hostname) !== null;
   }
@@ -46,10 +91,12 @@ export class Middleware {
 
     if (this.isSubdomainRequest(hostname)) {
       const subdomain = this.extractSubdomain(hostname);
-      if (subdomain && subdomain !== "www") {
+      if (subdomain && this.isValidSubdomain(subdomain)) {
         const url = request.nextUrl.clone();
         url.pathname = `/subdomain/${subdomain}`;
         return NextResponse.rewrite(url);
+      } else if (subdomain && !this.isValidSubdomain(subdomain)) {
+        return NextResponse.redirect(new URL("/", request.url));
       }
     }
 
