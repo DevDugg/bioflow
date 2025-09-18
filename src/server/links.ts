@@ -24,7 +24,11 @@ export const createLink = withErrorHandler(
     const newLink = await db.insert(links).values(data).returning();
 
     revalidatePath("/admin");
-    revalidatePath(`/${(await getArtistFromLink(newLink[0].id))?.slug}`);
+    const artist = await getArtistFromLink(newLink[0].id);
+    if (artist) {
+      revalidatePath(`/${artist.slug}`);
+      revalidatePath(`/subdomain/${artist.slug}`);
+    }
 
     return newLink[0];
   })
@@ -54,7 +58,11 @@ export const updateLink = withErrorHandler(
       .returning();
 
     revalidatePath("/admin");
-    revalidatePath(`/${(await getArtistFromLink(id))?.slug}`);
+    const artist = await getArtistFromLink(id);
+    if (artist) {
+      revalidatePath(`/${artist.slug}`);
+      revalidatePath(`/subdomain/${artist.slug}`);
+    }
 
     return updatedLink[0];
   }
@@ -92,6 +100,7 @@ export const updateLinkOrder = withErrorHandler(
     revalidatePath("/admin");
     if (artist) {
       revalidatePath(`/${artist.slug}`);
+      revalidatePath(`/subdomain/${artist.slug}`);
     }
 
     return { success: true };
@@ -108,6 +117,7 @@ export const deleteLink = withErrorHandler(async (linkId: string) => {
   revalidatePath("/admin");
   if (artist) {
     revalidatePath(`/${artist.slug}`);
+    revalidatePath(`/subdomain/${artist.slug}`);
   }
 
   return deletedLink[0];
