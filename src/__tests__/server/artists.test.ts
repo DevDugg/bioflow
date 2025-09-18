@@ -1,39 +1,22 @@
-import { describe, it, expect, beforeEach, afterEach, mock } from "bun:test";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import {
+  mockDb,
+  mockRevalidatePath,
+  setupMocks,
+  clearMocks,
+} from "../shared-mocks";
 
-const mockDb = {
-  query: {
-    artists: {
-      findFirst: mock(),
-    },
-  },
-};
-
-const mockRevalidatePath = mock();
-
-mock.module("next/cache", () => ({
-  revalidatePath: mockRevalidatePath,
-}));
-
-mock.module("@/db/client", () => ({
-  db: mockDb,
-}));
-
-mock.module("@/server/errors/error-handler", () => ({
-  withErrorHandler: (fn: any) => fn,
-}));
-
-mock.module("server-only", () => ({}));
+setupMocks();
 
 const { getArtistByHandle } = await import("@/server/artists");
 
 describe("getArtistByHandle", () => {
   beforeEach(() => {
-    mockDb.query.artists.findFirst.mockClear();
-    mockRevalidatePath.mockClear();
+    clearMocks();
   });
 
   afterEach(() => {
-    mock.restore();
+    vi.clearAllMocks();
   });
 
   it("should return artist for valid handle", async () => {

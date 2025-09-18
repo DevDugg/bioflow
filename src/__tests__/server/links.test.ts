@@ -1,35 +1,14 @@
-import { describe, it, expect, beforeEach, afterEach, mock } from "bun:test";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import {
+  mockDb,
+  mockRevalidatePath,
+  setupMocks,
+  clearMocks,
+} from "../shared-mocks";
 
-const mockDb = {
-  insert: mock(),
-  update: mock(),
-  delete: mock(),
-  query: {
-    links: {
-      findFirst: mock(),
-    },
-  },
-};
+setupMocks();
 
-const mockRevalidatePath = mock();
-
-mock.module("next/cache", () => ({
-  revalidatePath: mockRevalidatePath,
-}));
-
-mock.module("@/db/client", () => ({
-  db: mockDb,
-}));
-
-mock.module("@/server/errors/error-handler", () => ({
-  withErrorHandler: (fn: any) => fn,
-}));
-
-mock.module("@/server/errors/with-zod", () => ({
-  withZod: (schema: any, fn: any) => fn,
-}));
-
-mock.module("@/server/errors/bad-request-error", () => ({
+vi.mock("@/server/errors/bad-request-error", () => ({
   BadRequestError: class BadRequestError extends Error {
     statusCode = 400;
     constructor(message: string) {
@@ -38,21 +17,15 @@ mock.module("@/server/errors/bad-request-error", () => ({
   },
 }));
 
-mock.module("server-only", () => ({}));
-
 const { createLink, updateLink, deleteLink } = await import("@/server/links");
 
 describe("Server Actions - Links", () => {
   beforeEach(() => {
-    mockDb.insert.mockClear();
-    mockDb.update.mockClear();
-    mockDb.delete.mockClear();
-    mockDb.query.links.findFirst.mockClear();
-    mockRevalidatePath.mockClear();
+    clearMocks();
   });
 
   afterEach(() => {
-    mock.restore();
+    vi.clearAllMocks();
   });
 
   describe("createLink", () => {
@@ -72,8 +45,8 @@ describe("Server Actions - Links", () => {
       const mockArtist = { slug: "testartist" };
 
       mockDb.insert.mockReturnValue({
-        values: mock().mockReturnValue({
-          returning: mock().mockResolvedValue([mockNewLink]),
+        values: vi.fn().mockReturnValue({
+          returning: vi.fn().mockResolvedValue([mockNewLink]),
         }),
       });
 
@@ -102,8 +75,8 @@ describe("Server Actions - Links", () => {
       };
 
       mockDb.insert.mockReturnValue({
-        values: mock().mockReturnValue({
-          returning: mock().mockResolvedValue([mockNewLink]),
+        values: vi.fn().mockReturnValue({
+          returning: vi.fn().mockResolvedValue([mockNewLink]),
         }),
       });
 
@@ -132,9 +105,9 @@ describe("Server Actions - Links", () => {
       const mockArtist = { slug: "testartist" };
 
       mockDb.update.mockReturnValue({
-        set: mock().mockReturnValue({
-          where: mock().mockReturnValue({
-            returning: mock().mockResolvedValue([mockUpdatedLink]),
+        set: vi.fn().mockReturnValue({
+          where: vi.fn().mockReturnValue({
+            returning: vi.fn().mockResolvedValue([mockUpdatedLink]),
           }),
         }),
       });
@@ -158,8 +131,8 @@ describe("Server Actions - Links", () => {
       });
 
       mockDb.delete.mockReturnValue({
-        where: mock().mockReturnValue({
-          returning: mock().mockResolvedValue([mockDeletedLink]),
+        where: vi.fn().mockReturnValue({
+          returning: vi.fn().mockResolvedValue([mockDeletedLink]),
         }),
       });
 
@@ -187,8 +160,8 @@ describe("Server Actions - Links", () => {
       const mockArtist = { slug: "devdugg" };
 
       mockDb.insert.mockReturnValue({
-        values: mock().mockReturnValue({
-          returning: mock().mockResolvedValue([mockNewLink]),
+        values: vi.fn().mockReturnValue({
+          returning: vi.fn().mockResolvedValue([mockNewLink]),
         }),
       });
 

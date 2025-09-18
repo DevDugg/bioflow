@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "bun:test";
+import { describe, it, expect, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 import { Middleware } from "@/lib/middleware";
 
