@@ -25,14 +25,29 @@ export class Middleware {
   ];
 
   private extractSubdomain(hostname: string): string | null {
-    const parts = hostname.split(".");
-    if (
-      parts.length >= 3 &&
-      parts[parts.length - 2] === "bioflow" &&
-      parts[parts.length - 1] === "app"
-    ) {
-      return parts[0];
+    const rootDomain = process.env.NEXT_PUBLIC_SITE_URL
+      ? new URL(process.env.NEXT_PUBLIC_SITE_URL).hostname
+      : null;
+
+    if (!rootDomain) {
+      return null;
     }
+
+    const hostnameWithoutPort = hostname.split(":")[0];
+
+    if (!hostnameWithoutPort.endsWith(rootDomain)) {
+      return null;
+    }
+
+    const rootDomainParts = rootDomain.split(".");
+    const hostnameParts = hostnameWithoutPort.split(".");
+
+    if (hostnameParts.length > rootDomainParts.length) {
+      return hostnameParts
+        .slice(0, hostnameParts.length - rootDomainParts.length)
+        .join(".");
+    }
+
     return null;
   }
 
@@ -81,23 +96,18 @@ export class Middleware {
     );
   }
 
-  private isSubdomainRequest(hostname: string): boolean {
-    return this.extractSubdomain(hostname) !== null;
-  }
-
   async handle(request: NextRequest, user: User | null) {
     const { pathname } = request.nextUrl;
     const hostname = request.headers.get("host") || "";
+    const subdomain = this.extractSubdomain(hostname);
 
-    if (this.isSubdomainRequest(hostname)) {
-      const subdomain = this.extractSubdomain(hostname);
-      if (subdomain && this.isValidSubdomain(subdomain)) {
+    if (subdomain) {
+      if (this.isValidSubdomain(subdomain)) {
         const url = request.nextUrl.clone();
         url.pathname = `/subdomain/${subdomain}`;
         return NextResponse.rewrite(url);
-      } else if (subdomain && !this.isValidSubdomain(subdomain)) {
-        return NextResponse.redirect(new URL("/", request.url));
       }
+      return NextResponse.redirect(new URL("/", request.url));
     }
 
     for (const rule of this.routeRules) {

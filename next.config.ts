@@ -2,6 +2,14 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   async rewrites() {
+    const rootDomain = process.env.NEXT_PUBLIC_SITE_URL
+      ? new URL(process.env.NEXT_PUBLIC_SITE_URL).hostname
+      : null;
+
+    if (!rootDomain) {
+      return [];
+    }
+
     return [
       {
         source: "/:path*",
@@ -9,7 +17,7 @@ const nextConfig: NextConfig = {
         has: [
           {
             type: "host",
-            value: "(?<subdomain>.*)\\.bioflow\\.app",
+            value: `(?<subdomain>.*)\\.${rootDomain.replace(/\./g, "\\.")}`,
           },
         ],
       },
