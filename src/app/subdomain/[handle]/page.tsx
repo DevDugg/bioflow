@@ -20,12 +20,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  const profileUrl = `https://${result.slug}.bioflow.app`;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+
+  if (!siteUrl) {
+    throw new Error("NEXT_PUBLIC_SITE_URL is not set");
+  }
+
+  const profileUrl = new URL(siteUrl);
+  profileUrl.hostname = `${result.slug}.${profileUrl.hostname}`;
 
   const { metadata } = generateSeo({
     title: result.name,
     description: result.description ?? undefined,
-    url: profileUrl,
+    url: profileUrl.toString(),
     links: result.links,
     handle: result.slug,
   });
@@ -41,12 +48,19 @@ export default async function SubdomainArtistPage({ params }: Props) {
     return notFound();
   }
 
-  const profileUrl = `https://${result.slug}.bioflow.app`;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+
+  if (!siteUrl) {
+    throw new Error("NEXT_PUBLIC_SITE_URL is not set");
+  }
+
+  const profileUrl = new URL(siteUrl);
+  profileUrl.hostname = `${result.slug}.${profileUrl.hostname}`;
 
   const { jsonLd } = generateSeo({
     title: result.name,
     description: result.description ?? undefined,
-    url: profileUrl,
+    url: profileUrl.toString(),
     links: result.links,
     handle: result.slug,
   });
