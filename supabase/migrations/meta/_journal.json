@@ -64,6 +64,13 @@
       "when": 1758049989669,
       "tag": "0008_funny_madame_hydra",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1758654233079,
+      "tag": "0009_bored_mantis",
+      "breakpoints": true
     }
   ]
 }
