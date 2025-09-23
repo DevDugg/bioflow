@@ -23,6 +23,7 @@ export const artists = pgTable(
     name: text("name").notNull(),
     description: text("description"),
     image: text("image"),
+    albumCoverUrl: text("album_cover_url"),
     slug: text("slug").notNull(),
     status: text("status").notNull().default("published"),
     theme: jsonb("theme").$type<{
