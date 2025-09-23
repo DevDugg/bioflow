@@ -6,16 +6,16 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: "jsdom",
-    setupFiles: ["./src/test-setup.ts"],
     globals: true,
+    setupFiles: ["./src/test-setup.ts"],
+    env: {
+      NEXT_PUBLIC_SITE_URL: "http://localhost:3000",
+    },
   },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
       "server-only": path.resolve(__dirname, "./src/__mocks__/server-only.ts"),
     },
-  },
-  define: {
-    "import.meta.vitest": "undefined",
   },
 });

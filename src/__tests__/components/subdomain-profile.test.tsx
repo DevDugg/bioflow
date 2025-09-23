@@ -43,7 +43,7 @@ describe("Subdomain Profile Page", () => {
     openGraph: {
       title: "DevDugg",
       description: "Developer profile",
-      url: "https://devdugg.bioflow.app",
+      url: "http://devdugg.localhost:3000/",
     },
   };
 
@@ -82,7 +82,7 @@ describe("Subdomain Profile Page", () => {
       expect(mockGenerateSeo).toHaveBeenCalledWith({
         title: "DevDugg",
         description: "Developer profile",
-        url: "https://devdugg.bioflow.app",
+        url: "http://devdugg.localhost:3000/",
         links: mockArtist.links,
         handle: "devdugg",
       });
@@ -121,7 +121,7 @@ describe("Subdomain Profile Page", () => {
 
       expect(mockGenerateSeo).toHaveBeenCalledWith(
         expect.objectContaining({
-          url: "https://devdugg.bioflow.app",
+          url: "http://devdugg.localhost:3000/",
         })
       );
     });
@@ -145,7 +145,7 @@ describe("Subdomain Profile Page", () => {
 
       expect(mockGenerateSeo).toHaveBeenCalledWith(
         expect.objectContaining({
-          url: "https://devdugg.bioflow.app",
+          url: "http://devdugg.localhost:3000/",
         })
       );
     });

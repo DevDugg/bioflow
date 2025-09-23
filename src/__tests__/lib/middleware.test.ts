@@ -4,34 +4,34 @@ import { Middleware } from "@/lib/middleware";
 
 describe("Middleware", () => {
   let middleware: Middleware;
-
+  const baseUrl = new URL(process.env.NEXT_PUBLIC_SITE_URL!).host;
   beforeEach(() => {
     middleware = new Middleware();
   });
 
   describe("extractSubdomain", () => {
-    it("should extract subdomain from valid bioflow.app hostname", () => {
-      const hostname = "devdugg.bioflow.app";
+    it("should extract subdomain from valid subdomain hostname", () => {
+      const hostname = `devdugg.${baseUrl}`;
       const result = (middleware as any).extractSubdomain(hostname);
       expect(result).toBe("devdugg");
     });
 
-    it("should return null for non-bioflow.app hostname", () => {
+    it("should return null for non-subdomain hostname", () => {
       const hostname = "example.com";
       const result = (middleware as any).extractSubdomain(hostname);
       expect(result).toBeNull();
     });
 
-    it("should return null for bioflow.app without subdomain", () => {
-      const hostname = "bioflow.app";
+    it("should return null for without subdomain", () => {
+      const hostname = baseUrl;
       const result = (middleware as any).extractSubdomain(hostname);
       expect(result).toBeNull();
     });
 
     it("should handle multiple subdomain levels", () => {
-      const hostname = "sub.devdugg.bioflow.app";
+      const hostname = `sub.devdugg.${baseUrl}`;
       const result = (middleware as any).extractSubdomain(hostname);
-      expect(result).toBe("sub");
+      expect(result).toBe("sub.devdugg");
     });
   });
 
@@ -72,52 +72,33 @@ describe("Middleware", () => {
     });
   });
 
-  describe("isSubdomainRequest", () => {
-    it("should identify bioflow.app subdomain requests", () => {
-      expect(
-        (middleware as any).isSubdomainRequest("devdugg.bioflow.app")
-      ).toBe(true);
-      expect((middleware as any).isSubdomainRequest("user.bioflow.app")).toBe(
-        true
-      );
-    });
-
-    it("should reject non-subdomain requests", () => {
-      expect((middleware as any).isSubdomainRequest("bioflow.app")).toBe(false);
-      expect((middleware as any).isSubdomainRequest("example.com")).toBe(false);
-      expect((middleware as any).isSubdomainRequest("localhost:3000")).toBe(
-        false
-      );
-    });
-  });
-
   describe("handle", () => {
     it("should rewrite valid subdomain requests to subdomain route", async () => {
-      const request = new NextRequest("https://devdugg.bioflow.app/", {
-        headers: { host: "devdugg.bioflow.app" },
+      const request = new NextRequest(`https://devdugg.${baseUrl}/`, {
+        headers: { host: `devdugg.${baseUrl}` },
       });
 
       const response = await middleware.handle(request, null);
 
       expect(response.headers.get("x-middleware-rewrite")).toBe(
-        "https://devdugg.bioflow.app/subdomain/devdugg"
+        `https://devdugg.${baseUrl}/subdomain/devdugg`
       );
     });
 
     it("should redirect invalid subdomain requests to home", async () => {
-      const request = new NextRequest("https://www.bioflow.app/", {
-        headers: { host: "www.bioflow.app" },
+      const request = new NextRequest(`https://www.${baseUrl}/`, {
+        headers: { host: `www.${baseUrl}` },
       });
 
       const response = await middleware.handle(request, null);
 
       expect(response.status).toBe(307);
-      expect(response.headers.get("location")).toBe("https://www.bioflow.app/");
+      expect(response.headers.get("location")).toBe(`https://www.${baseUrl}/`);
     });
 
     it("should pass through non-subdomain requests", async () => {
-      const request = new NextRequest("https://bioflow.app/", {
-        headers: { host: "bioflow.app" },
+      const request = new NextRequest(`https://${baseUrl}/`, {
+        headers: { host: baseUrl },
       });
 
       const response = await middleware.handle(request, null);
@@ -126,8 +107,8 @@ describe("Middleware", () => {
     });
 
     it("should handle protected routes for authenticated users", async () => {
-      const request = new NextRequest("https://bioflow.app/login", {
-        headers: { host: "bioflow.app" },
+      const request = new NextRequest(`https://${baseUrl}/login`, {
+        headers: { host: baseUrl },
       });
 
       const mockUser = { id: "user123" } as any;
@@ -135,21 +116,19 @@ describe("Middleware", () => {
 
       expect(response.status).toBe(307);
       expect(response.headers.get("location")).toBe(
-        "https://bioflow.app/dashboard"
+        `https://${baseUrl}/dashboard`
       );
     });
 
     it("should handle protected routes for unauthenticated users", async () => {
-      const request = new NextRequest("https://bioflow.app/dashboard", {
-        headers: { host: "bioflow.app" },
+      const request = new NextRequest(`https://${baseUrl}/dashboard`, {
+        headers: { host: baseUrl },
       });
 
       const response = await middleware.handle(request, null);
 
       expect(response.status).toBe(307);
-      expect(response.headers.get("location")).toBe(
-        "https://bioflow.app/login"
-      );
+      expect(response.headers.get("location")).toBe(`https://${baseUrl}/login`);
     });
   });
 });

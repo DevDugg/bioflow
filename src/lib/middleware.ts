@@ -104,7 +104,7 @@ export class Middleware {
     if (subdomain) {
       if (this.isValidSubdomain(subdomain)) {
         const url = request.nextUrl.clone();
-        url.pathname = `/subdomain/${subdomain}`;
+        url.pathname = `/subdomain/${subdomain}${url.pathname}`;
         return NextResponse.rewrite(url);
       }
       return NextResponse.redirect(new URL("/", request.url));
