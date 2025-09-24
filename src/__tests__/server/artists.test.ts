@@ -1,85 +1,117 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import {
-  mockDb,
-  mockRevalidatePath,
-  setupMocks,
-  clearMocks,
-} from "../shared-mocks";
+import { describe, it, expect, beforeEach, afterEach, vi, test } from "vitest";
+import { mockDb, setupMocks, clearMocks } from "../shared-mocks";
+import { getArtistByHandle, uploadAlbumArt } from "@/server/artists";
+
+const mockSupabase = {
+  storage: {
+    from: vi.fn().mockReturnThis(),
+    upload: vi.fn().mockResolvedValue({ error: null }),
+    getPublicUrl: vi.fn().mockReturnValue({
+      data: {
+        publicUrl: "http://example.com/album.jpg",
+      },
+    }),
+  },
+};
+
+vi.mock("../../../supabase/admin", () => ({
+  createSupabaseAdminClient: vi.fn(() => mockSupabase),
+}));
 
 setupMocks();
 
-const { getArtistByHandle } = await import("@/server/artists");
-
 describe("getArtistByHandle", () => {
   beforeEach(() => {
-    clearMocks();
-  });
-
-  afterEach(() => {
     vi.clearAllMocks();
   });
 
+  afterEach(() => {
+    clearMocks();
+  });
+
   it("should return artist for valid handle", async () => {
-    const mockArtist = {
-      id: "artist-123",
-      slug: "testartist",
+    const handle = "test-artist";
+    mockDb.query.artists.findFirst.mockResolvedValue({
+      id: "1",
       name: "Test Artist",
-      description: "Test description",
-      links: [],
-    };
+      slug: handle,
+    });
 
-    mockDb.query.artists.findFirst.mockResolvedValue(mockArtist);
+    const artist = await getArtistByHandle(handle);
 
-    const result = await getArtistByHandle("testartist");
-
-    expect(result).toEqual(mockArtist);
-    expect(mockDb.query.artists.findFirst).toHaveBeenCalled();
+    expect(artist).toBeDefined();
+    expect(artist.slug).toBe(handle);
+    expect(mockDb.query.artists.findFirst).toHaveBeenCalledWith({
+      where: expect.any(Object),
+      with: {
+        links: {
+          orderBy: expect.any(Function),
+        },
+      },
+    });
   });
 
   it("should throw NotFoundError for invalid handle", async () => {
+    const handle = "non-existent-artist";
     mockDb.query.artists.findFirst.mockResolvedValue(null);
 
-    await expect(getArtistByHandle("nonexistent")).rejects.toThrow();
+    await expect(getArtistByHandle(handle)).rejects.toThrow("Route not found");
   });
 
   it("should throw NotFoundError for empty handle", async () => {
-    await expect(getArtistByHandle("")).rejects.toThrow();
+    await expect(getArtistByHandle("")).rejects.toThrow("Route not found");
   });
 
   it("should handle subdomain handles correctly", async () => {
-    const mockArtist = {
-      id: "artist-123",
-      slug: "devdugg",
-      name: "DevDugg",
-      description: "Developer profile",
-      links: [],
-    };
-
-    mockDb.query.artists.findFirst.mockResolvedValue(mockArtist);
-
-    const result = await getArtistByHandle("devdugg");
-
-    expect(result.slug).toBe("devdugg");
-    expect(result.name).toBe("DevDugg");
+    const handle = "sub.domain";
+    mockDb.query.artists.findFirst.mockResolvedValue({ slug: handle });
+    const artist = await getArtistByHandle(handle);
+    expect(artist.slug).toBe(handle);
   });
 
   it("should include links with proper ordering", async () => {
-    const mockArtist = {
-      id: "artist-123",
-      slug: "testartist",
-      name: "Test Artist",
+    const handle = "artist-with-links";
+    const mockArtistWithLinks = {
+      slug: handle,
       links: [
-        { id: "link-1", order: 1, label: "First Link" },
-        { id: "link-2", order: 2, label: "Second Link" },
+        { id: "1", order: 1 },
+        { id: "2", order: 2 },
       ],
     };
+    mockDb.query.artists.findFirst.mockResolvedValue(mockArtistWithLinks);
 
-    mockDb.query.artists.findFirst.mockResolvedValue(mockArtist);
+    const artist = await getArtistByHandle(handle);
+    expect(artist.links).toBeDefined();
+    expect(artist.links.length).toBe(2);
+  });
+});
 
-    const result = await getArtistByHandle("testartist");
+describe("uploadAlbumArt", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    const mockUpdate = {
+      set: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      returning: vi.fn().mockResolvedValue([{ slug: "test-artist" }]),
+    };
+    mockDb.update.mockReturnValue(mockUpdate);
+  });
 
-    expect(result.links).toHaveLength(2);
-    expect(result.links[0].order).toBe(1);
-    expect(result.links[1].order).toBe(2);
+  test("should upload a file and update the artist", async () => {
+    const formData = new FormData();
+    formData.append("id", "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11");
+    const file = new File([""], "album.jpg", { type: "image/jpeg" });
+    formData.append("albumArt", file);
+
+    const result = await uploadAlbumArt(formData);
+
+    expect(mockSupabase.storage.from).toHaveBeenCalledWith("album-art");
+    expect(mockSupabase.storage.upload).toHaveBeenCalled();
+    expect(mockDb.update).toHaveBeenCalled();
+    const mockUpdateInstance = mockDb.update.mock.results[0].value;
+    expect(mockUpdateInstance.set).toHaveBeenCalledWith({
+      albumCoverUrl: "http://example.com/album.jpg",
+    });
+    expect(result).toEqual({ slug: "test-artist" });
   });
 });
