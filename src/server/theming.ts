@@ -4,7 +4,6 @@ import { Vibrant } from "node-vibrant/node";
 import { z } from "zod";
 import { BadRequestError } from "./errors/bad-request-error";
 import { withErrorHandler } from "./errors/error-handler";
-import { ModelError } from "./errors/model-error";
 
 const ExtractPalettePayload = z.url("Invalid URL provided");
 
