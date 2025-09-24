@@ -1,9 +1,20 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { XIcon } from "lucide-react";
+import { memo, useEffect, useState, useTransition } from "react";
+import { HexColorPicker } from "react-colorful";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -13,17 +24,13 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { memo, useEffect, useState, useTransition } from "react";
-import { toast } from "sonner";
-import type { getArtistByHandle } from "@/server/artists";
-import { updateArtistTheme } from "@/server/artists";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { HexColorPicker } from "react-colorful";
-import { XIcon } from "lucide-react";
+import type { getArtistByHandle } from "@/server/artists";
+import { updateArtistTheme } from "@/server/artists";
 
 type Artist = Awaited<ReturnType<typeof getArtistByHandle>>;
 
@@ -55,13 +62,15 @@ const cssVarMap: Record<keyof ThemeFormValues, string> = {
   primaryForeground: "--primary-foreground",
 };
 
-export const ThemeForm = memo(function ThemeForm({
+function ThemeFormComponent({
   artist,
   onThemeChange,
-}: ThemeFormProps) {
+}: Omit<ThemeFormProps, "artist"> & {
+  artist: Exclude<Artist, { errors: unknown }>;
+}) {
   const [isPending, startTransition] = useTransition();
   const [defaultTheme, setDefaultTheme] = useState<ThemeFormValues | null>(
-    null,
+    null
   );
 
   useEffect(() => {
@@ -72,10 +81,6 @@ export const ThemeForm = memo(function ThemeForm({
     }, {} as ThemeFormValues);
     setDefaultTheme(theme);
   }, []);
-
-  if ("errors" in artist) {
-    return null;
-  }
 
   const form = useForm<ThemeFormValues>({
     resolver: zodResolver(formSchema),
@@ -109,7 +114,9 @@ export const ThemeForm = memo(function ThemeForm({
       const result = await updateArtistTheme({ id: artist.id, theme: values });
       if ("errors" in result) {
         toast.error("Error updating theme", {
-          description: result.errors.map((e: any) => e.message).join(", "),
+          description: result.errors
+            .map((e: { message: string }) => e.message)
+            .join(", "),
         });
       } else {
         toast.success("Theme updated successfully.");
@@ -127,7 +134,9 @@ export const ThemeForm = memo(function ThemeForm({
         });
         if ("errors" in result) {
           toast.error("Error resetting theme", {
-            description: result.errors.map((e: any) => e.message).join(", "),
+            description: result.errors
+              .map((e: { message: string }) => e.message)
+              .join(", "),
           });
         } else {
           toast.info("Theme reset to default.");
@@ -143,6 +152,23 @@ export const ThemeForm = memo(function ThemeForm({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Generate from Album Art</CardTitle>
+            <CardDescription>
+              Upload your album art to automatically generate a color palette.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex items-end gap-4">
+            <FormItem>
+              <FormLabel>Album Art</FormLabel>
+              <FormControl>
+                <Input type="file" className="max-w-xs" />
+              </FormControl>
+            </FormItem>
+            <Button type="button">Generate</Button>
+          </CardContent>
+        </Card>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {themeColors.map((key) => (
             <FormField
@@ -208,4 +234,14 @@ export const ThemeForm = memo(function ThemeForm({
       </form>
     </Form>
   );
+}
+
+export const ThemeForm = memo(function ThemeForm({
+  artist,
+  onThemeChange,
+}: ThemeFormProps) {
+  if ("errors" in artist) {
+    return null;
+  }
+  return <ThemeFormComponent artist={artist} onThemeChange={onThemeChange} />;
 });
