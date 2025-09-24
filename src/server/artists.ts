@@ -1,19 +1,19 @@
 "use server";
 
+import { eq } from "drizzle-orm";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
+import { z } from "zod";
 import { db } from "@/db/client";
 import { artists } from "@/db/schemas/artists";
-import { eq } from "drizzle-orm";
-import { withErrorHandler } from "./errors/error-handler";
-import { NotFoundError } from "./errors/not-found-error";
-import { z } from "zod";
-import { BadRequestError } from "./errors/bad-request-error";
-import { revalidatePath } from "next/cache";
-import { createSupabaseAdminClient } from "../../supabase/admin";
-import { ModelError } from "./errors/model-error";
-import { createClient } from "../../supabase/server";
 import { owners } from "@/db/schemas/owners";
-import { redirect } from "next/navigation";
+import { createSupabaseAdminClient } from "../../supabase/admin";
+import { createClient } from "../../supabase/server";
+import { BadRequestError } from "./errors/bad-request-error";
+import { withErrorHandler } from "./errors/error-handler";
 import { withFormActionErrorHandler } from "./errors/form-action-error-handler";
+import { ModelError } from "./errors/model-error";
+import { NotFoundError } from "./errors/not-found-error";
 
 const GetArtistByHandlePayload = z.string().min(1, "Handle is required");
 
@@ -69,7 +69,7 @@ export const artistExists = withErrorHandler(async (userId: string) => {
 });
 
 export const onboardUser = withFormActionErrorHandler(
-  async (prevState: any, formData: FormData) => {
+  async (_prevState: unknown, formData: FormData) => {
     const data = {
       name: formData.get("name") as string,
       slug: formData.get("slug") as string,
@@ -117,7 +117,7 @@ export const onboardUser = withFormActionErrorHandler(
       await tx.insert(owners).values({
         id: user.id,
         name: data.name,
-        email: user.email!,
+        email: user.email ?? "",
       });
       await tx.insert(artists).values({
         ownerId: user.id,
@@ -191,6 +191,60 @@ export const updateArtist = withErrorHandler(async (payload: FormData) => {
 
   if (!updatedArtist || updatedArtist.length === 0) {
     throw new ModelError("Failed to update artist");
+  }
+
+  revalidatePath("/admin/profile");
+  revalidatePath(`/subdomain/${updatedArtist[0].slug}`);
+
+  return updatedArtist[0];
+});
+
+const UploadAlbumArtPayload = z.object({
+  id: z.uuid(),
+  albumArt: z
+    .instanceof(File)
+    .refine((file) => file.size < 4 * 1024 * 1024, "File must be less than 4MB")
+    .refine(
+      (file) => ["image/jpeg", "image/png", "image/webp"].includes(file.type),
+      "Only JPG, PNG, and WEBP formats are allowed"
+    ),
+});
+
+export const uploadAlbumArt = withErrorHandler(async (payload: FormData) => {
+  const values = Object.fromEntries(payload.entries());
+  const validation = UploadAlbumArtPayload.safeParse(values);
+
+  if (!validation.success) {
+    throw new BadRequestError(validation.error.message);
+  }
+
+  const { id, albumArt } = validation.data;
+
+  const supabase = createSupabaseAdminClient();
+  const filePath = `${id}/${Date.now()}-${albumArt.name}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from("album-art")
+    .upload(filePath, albumArt);
+
+  if (uploadError) {
+    throw new ModelError(uploadError.message);
+  }
+
+  const { data: publicUrl } = supabase.storage
+    .from("album-art")
+    .getPublicUrl(filePath);
+
+  const updatedArtist = await db
+    .update(artists)
+    .set({
+      albumCoverUrl: publicUrl.publicUrl,
+    })
+    .where(eq(artists.id, id))
+    .returning();
+
+  if (!updatedArtist || updatedArtist.length === 0) {
+    throw new ModelError("Failed to update artist with album art");
   }
 
   revalidatePath("/admin/profile");
