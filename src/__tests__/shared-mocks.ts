@@ -21,6 +21,10 @@ export const setupMocks = () => {
     revalidatePath: mockRevalidatePath,
   }));
 
+  vi.mock("next/headers", () => ({
+    headers: vi.fn(() => new Map([["x-vercel-id", "test-id"]])),
+  }));
+
   vi.mock("@/db/client", () => ({
     db: mockDb,
   }));
